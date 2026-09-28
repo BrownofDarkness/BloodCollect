@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../constants/app_debug.dart';
 import '../constants/app_enums.dart';
 import '../widgets/placeholder_screen.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
@@ -10,33 +11,38 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_shell.dart';
+import '../../features/citizen/presentation/screens/blood_availability_screen.dart';
+import '../../features/citizen/presentation/screens/blood_center_detail_screen.dart';
 import '../../features/citizen/presentation/screens/citizen_shell.dart';
+import '../../features/citizen/presentation/screens/donate_screen.dart';
+import '../../features/citizen/presentation/screens/profile_screen.dart';
 import '../../features/health_center/presentation/screens/hc_shell.dart';
 
 part 'app_router.g.dart';
 
 abstract final class AppRoutes {
-  static const splash   = '/';
-  static const login    = '/login';
+  static const splash = '/';
+  static const login = '/login';
   static const register = '/register/:role';
 
-  static const citizenHome    = '/citizen/home';
-  static const citizenDonors  = '/citizen/donors';
-  static const citizenBlood   = '/citizen/blood';
-  static const citizenDonate  = '/citizen/donate';
+  static const citizenHome = '/citizen/home';
+  static const citizenDonors = '/citizen/donors';
+  static const citizenBlood = '/citizen/blood';
+  static const citizenBloodCenter = ':centerId';
+  static const citizenDonate = '/citizen/donate';
   static const citizenProfile = '/citizen/profile';
 
-  static const hcHome     = '/hc/home';
-  static const hcDonors   = '/hc/donors';
-  static const hcBlood    = '/hc/blood';
+  static const hcHome = '/hc/home';
+  static const hcDonors = '/hc/donors';
+  static const hcBlood = '/hc/blood';
   static const hcRequests = '/hc/requests';
-  static const hcProfile  = '/hc/profile';
+  static const hcProfile = '/hc/profile';
 
-  static const bcHome      = '/bc/home';
-  static const bcStocks    = '/bc/stocks';
-  static const bcRequests  = '/bc/requests';
+  static const bcHome = '/bc/home';
+  static const bcStocks = '/bc/stocks';
+  static const bcRequests = '/bc/requests';
   static const bcCampaigns = '/bc/campaigns';
-  static const bcProfile   = '/bc/profile';
+  static const bcProfile = '/bc/profile';
 }
 
 @riverpod
@@ -69,13 +75,22 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
 
     final user = authAsync.asData?.value;
     final role = roleAsync.asData?.value;
-    final loc  = state.matchedLocation;
+    final loc = state.matchedLocation;
 
-    final isPublic = loc == AppRoutes.splash ||
+    final isPublic =
+        loc == AppRoutes.splash ||
         loc == AppRoutes.login ||
         loc.startsWith('/register');
 
     if (user == null) {
+      // Contournement de développement : ouvre l'accueil du rôle demandé
+      // sans exiger de session. Inactif sans `--dart-define=SKIP_AUTH=true`.
+      // Une fois arrivé, on laisse la navigation se dérouler pour éviter une
+      // boucle de redirection.
+      if (AppDebug.skipAuth && !isPublic) {
+        final home = _homeForRole(_debugRole);
+        return loc == home ? null : home;
+      }
       return isPublic ? null : AppRoutes.login;
     }
 
@@ -95,12 +110,15 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
   }
 
   String _homeForRole(UserRole? role) => switch (role) {
-    UserRole.citizen      => AppRoutes.citizenHome,
+    UserRole.citizen => AppRoutes.citizenHome,
     UserRole.healthCenter => AppRoutes.hcHome,
-    UserRole.bloodCenter  => AppRoutes.bcHome,
-    UserRole.admin        => AppRoutes.citizenHome,
-    null                  => AppRoutes.login,
+    UserRole.bloodCenter => AppRoutes.bcHome,
+    UserRole.admin => AppRoutes.citizenHome,
+    null => AppRoutes.login,
   };
+
+  /// Rôle demandé par `--dart-define=START_ROLE=...`.
+  UserRole? get _debugRole => UserRole.fromString(AppDebug.startRole);
 }
 
 @Riverpod(keepAlive: true)
@@ -122,9 +140,8 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: '/register/:role',
-        builder: (context, state) => RegisterScreen(
-          role: state.pathParameters['role'] ?? 'citizen',
-        ),
+        builder: (context, state) =>
+            RegisterScreen(role: state.pathParameters['role'] ?? 'citizen'),
       ),
 
       // ── Citoyen ──────────────────────────────────────────────────────────
@@ -132,41 +149,56 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state, navigationShell) =>
             CitizenShell(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.citizenHome,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Accueil'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.citizenDonors,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Donneurs'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.citizenBlood,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Sang'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.citizenDonate,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Donner'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.citizenProfile,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Profil'),
-            ),
-          ]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.citizenHome,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Accueil'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.citizenDonors,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Donneurs'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.citizenBlood,
+                builder: (context, state) => const BloodAvailabilityScreen(),
+                routes: [
+                  GoRoute(
+                    path: AppRoutes.citizenBloodCenter,
+                    builder: (context, state) => BloodCenterDetailScreen(
+                      centerId: state.pathParameters['centerId'] ?? '',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.citizenDonate,
+                builder: (context, state) => const DonateScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.citizenProfile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -175,41 +207,51 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state, navigationShell) =>
             HealthCenterShell(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.hcHome,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Accueil'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.hcDonors,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Donneurs'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.hcBlood,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Sang'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.hcRequests,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Demandes'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.hcProfile,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Profil'),
-            ),
-          ]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.hcHome,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Accueil'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.hcDonors,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Donneurs'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.hcBlood,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Sang'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.hcRequests,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Demandes'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.hcProfile,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Profil'),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -218,41 +260,51 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state, navigationShell) =>
             BloodCenterShell(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.bcHome,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Accueil'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.bcStocks,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Stocks'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.bcRequests,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Demandes'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.bcCampaigns,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Collectes'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.bcProfile,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Profil'),
-            ),
-          ]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.bcHome,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Accueil'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.bcStocks,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Stocks'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.bcRequests,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Demandes'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.bcCampaigns,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Collectes'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.bcProfile,
+                builder: (context, state) =>
+                    const PlaceholderScreen(title: 'Profil'),
+              ),
+            ],
+          ),
         ],
       ),
     ],
