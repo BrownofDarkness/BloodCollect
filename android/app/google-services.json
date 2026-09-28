@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "71835287248",
+    "project_id": "bloodcollect-be2ac",
+    "storage_bucket": "bloodcollect-be2ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71835287248:android:eaa53c8e1b2198b3f768d5",
+        "android_client_info": {
+          "package_name": "com.flufithon.blood_collect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYxtChZxX4j_rf1a8glsETGe8Mb1t3ilk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
