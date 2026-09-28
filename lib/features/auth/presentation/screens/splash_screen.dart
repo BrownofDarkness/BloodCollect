@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -7,14 +8,14 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.rouge,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.water_drop, size: 72, color: Colors.white),
-            SizedBox(height: 24),
+            Image.asset(AppAssets.logoWhite, width: 120, height: 120),
+            const SizedBox(height: 24),
             Text(
               'BloodCollect',
               style: TextStyle(
