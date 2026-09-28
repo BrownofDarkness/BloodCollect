@@ -1,5 +1,6 @@
 export 'app_notification.dart';
 export 'app_user.dart';
+export 'blood_availability.dart';
 export 'blood_center.dart';
 export 'blood_request.dart';
 export 'blood_stock_lot.dart';
