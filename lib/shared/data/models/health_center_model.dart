@@ -34,8 +34,8 @@ class HealthCenterModel extends HealthCenter {
       establishmentType: map['establishmentType'] as String? ?? '',
       authorizationNumber: map['authorizationNumber'] as String? ?? '',
       contactFunction: map['contactFunction'] as String? ?? '',
-      verificationStatus: VerificationStatus.fromString(
-              map['verificationStatus'] as String?) ??
+      verificationStatus:
+          VerificationStatus.fromString(map['verificationStatus'] as String?) ??
           VerificationStatus.pending,
       createdAt: tsToDate(map['createdAt'], fallback: DateTime.now()),
       updatedAt: tsToDate(map['updatedAt'], fallback: DateTime.now()),
@@ -43,18 +43,18 @@ class HealthCenterModel extends HealthCenter {
   }
 
   Map<String, dynamic> toMap() => {
-        'userId': userId,
-        'name': name,
-        'address': address,
-        'city': city,
-        'commune': commune,
-        'location': geoToFirestore(location),
-        'phone': phone,
-        'establishmentType': establishmentType,
-        'authorizationNumber': authorizationNumber,
-        'contactFunction': contactFunction,
-        'verificationStatus': verificationStatus.firestoreValue,
-        'createdAt': dateToTs(createdAt),
-        'updatedAt': dateToTs(updatedAt),
-      };
+    'userId': userId,
+    'name': name,
+    'address': address,
+    'city': city,
+    'commune': commune,
+    'location': geoToFirestore(location),
+    'phone': phone,
+    'establishmentType': establishmentType,
+    'authorizationNumber': authorizationNumber,
+    'contactFunction': contactFunction,
+    'verificationStatus': verificationStatus.firestoreValue,
+    'createdAt': dateToTs(createdAt),
+    'updatedAt': dateToTs(updatedAt),
+  };
 }

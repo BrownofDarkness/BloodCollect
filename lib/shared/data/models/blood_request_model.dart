@@ -33,17 +33,19 @@ class BloodRequestModel extends BloodRequest {
       healthCenterId: map['healthCenterId'] as String? ?? '',
       bloodType:
           BloodType.fromString(map['bloodType'] as String?) ?? BloodType.oPos,
-      productType: ProductType.fromString(map['productType'] as String?) ??
+      productType:
+          ProductType.fromString(map['productType'] as String?) ??
           ProductType.wholeBlood,
       quantityNeeded: (map['quantityNeeded'] as num?)?.toInt() ?? 0,
       quantityFulfilled: (map['quantityFulfilled'] as num?)?.toInt() ?? 0,
       patientReference: map['patientReference'] as String?,
       priority:
           Priority.fromString(map['priority'] as String?) ?? Priority.normal,
-      status: RequestStatus.fromString(map['status'] as String?) ??
+      status:
+          RequestStatus.fromString(map['status'] as String?) ??
           RequestStatus.pending,
-      bloodRouteStep: BloodRouteStep.fromString(
-              map['bloodRouteStep'] as String?) ??
+      bloodRouteStep:
+          BloodRouteStep.fromString(map['bloodRouteStep'] as String?) ??
           BloodRouteStep.searchingStock,
       mobilizationRadius: (map['mobilizationRadius'] as num?)?.toInt(),
       matchedBloodCenterId: map['matchedBloodCenterId'] as String?,
@@ -59,24 +61,24 @@ class BloodRequestModel extends BloodRequest {
   }
 
   Map<String, dynamic> toMap() => {
-        'healthCenterId': healthCenterId,
-        'bloodType': bloodType.firestoreValue,
-        'productType': productType.firestoreValue,
-        'quantityNeeded': quantityNeeded,
-        'quantityFulfilled': quantityFulfilled,
-        'patientReference': patientReference,
-        'priority': priority.firestoreValue,
-        'status': status.firestoreValue,
-        'bloodRouteStep': bloodRouteStep.firestoreValue,
-        'mobilizationRadius': mobilizationRadius,
-        'matchedBloodCenterId': matchedBloodCenterId,
-        'quantityGranted': quantityGranted,
-        'responseMessage': responseMessage,
-        'notes': notes,
-        'createdAt': dateToTs(createdAt),
-        'updatedAt': dateToTs(updatedAt),
-        'receivedAt': receivedAt == null ? null : dateToTs(receivedAt!),
-        'processedAt': processedAt == null ? null : dateToTs(processedAt!),
-        'expiresAt': expiresAt == null ? null : dateToTs(expiresAt!),
-      };
+    'healthCenterId': healthCenterId,
+    'bloodType': bloodType.firestoreValue,
+    'productType': productType.firestoreValue,
+    'quantityNeeded': quantityNeeded,
+    'quantityFulfilled': quantityFulfilled,
+    'patientReference': patientReference,
+    'priority': priority.firestoreValue,
+    'status': status.firestoreValue,
+    'bloodRouteStep': bloodRouteStep.firestoreValue,
+    'mobilizationRadius': mobilizationRadius,
+    'matchedBloodCenterId': matchedBloodCenterId,
+    'quantityGranted': quantityGranted,
+    'responseMessage': responseMessage,
+    'notes': notes,
+    'createdAt': dateToTs(createdAt),
+    'updatedAt': dateToTs(updatedAt),
+    'receivedAt': receivedAt == null ? null : dateToTs(receivedAt!),
+    'processedAt': processedAt == null ? null : dateToTs(processedAt!),
+    'expiresAt': expiresAt == null ? null : dateToTs(expiresAt!),
+  };
 }

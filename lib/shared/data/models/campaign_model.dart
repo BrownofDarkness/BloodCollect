@@ -40,12 +40,14 @@ class CampaignModel extends Campaign {
           .map((e) => BloodType.fromString(e as String?))
           .whereType<BloodType>()
           .toList(),
-      targetCommunes:
-          ((map['targetCommunes'] as List?) ?? []).map((e) => '$e').toList(),
+      targetCommunes: ((map['targetCommunes'] as List?) ?? [])
+          .map((e) => '$e')
+          .toList(),
       targetUnits: (map['targetUnits'] as num?)?.toInt() ?? 0,
       collectedUnits: (map['collectedUnits'] as num?)?.toInt() ?? 0,
       notifyDonors: map['notifyDonors'] as bool? ?? true,
-      status: CampaignStatus.fromString(map['status'] as String?) ??
+      status:
+          CampaignStatus.fromString(map['status'] as String?) ??
           CampaignStatus.draft,
       createdAt: tsToDate(map['createdAt'], fallback: DateTime.now()),
       updatedAt: tsToDate(map['updatedAt'], fallback: DateTime.now()),
@@ -53,21 +55,21 @@ class CampaignModel extends Campaign {
   }
 
   Map<String, dynamic> toMap() => {
-        'bloodCenterId': bloodCenterId,
-        'title': title,
-        'description': description,
-        'location': geoToFirestore(location),
-        'locationName': locationName,
-        'commune': commune,
-        'startDate': dateToTs(startDate),
-        'endDate': dateToTs(endDate),
-        'targetBloodTypes': targetBloodTypes.map((e) => e.firestoreValue).toList(),
-        'targetCommunes': targetCommunes,
-        'targetUnits': targetUnits,
-        'collectedUnits': collectedUnits,
-        'notifyDonors': notifyDonors,
-        'status': status.firestoreValue,
-        'createdAt': dateToTs(createdAt),
-        'updatedAt': dateToTs(updatedAt),
-      };
+    'bloodCenterId': bloodCenterId,
+    'title': title,
+    'description': description,
+    'location': geoToFirestore(location),
+    'locationName': locationName,
+    'commune': commune,
+    'startDate': dateToTs(startDate),
+    'endDate': dateToTs(endDate),
+    'targetBloodTypes': targetBloodTypes.map((e) => e.firestoreValue).toList(),
+    'targetCommunes': targetCommunes,
+    'targetUnits': targetUnits,
+    'collectedUnits': collectedUnits,
+    'notifyDonors': notifyDonors,
+    'status': status.firestoreValue,
+    'createdAt': dateToTs(createdAt),
+    'updatedAt': dateToTs(updatedAt),
+  };
 }

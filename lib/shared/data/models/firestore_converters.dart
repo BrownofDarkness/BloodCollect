@@ -25,5 +25,4 @@ GeoLocation geoToDomain(dynamic v) {
   return const GeoLocation(latitude: 0, longitude: 0);
 }
 
-GeoPoint geoToFirestore(GeoLocation g) =>
-    GeoPoint(g.latitude, g.longitude);
+GeoPoint geoToFirestore(GeoLocation g) => GeoPoint(g.latitude, g.longitude);

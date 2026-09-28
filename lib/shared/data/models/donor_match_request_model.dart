@@ -21,8 +21,7 @@ class DonorMatchRequestModel extends DonorMatchRequest {
     required super.createdAt,
   });
 
-  factory DonorMatchRequestModel.fromMap(
-      Map<String, dynamic> map, String id) {
+  factory DonorMatchRequestModel.fromMap(Map<String, dynamic> map, String id) {
     return DonorMatchRequestModel(
       id: id,
       requesterId: map['requesterId'] as String? ?? '',
@@ -32,7 +31,8 @@ class DonorMatchRequestModel extends DonorMatchRequest {
           BloodType.fromString(map['bloodType'] as String?) ?? BloodType.oPos,
       priority:
           Priority.fromString(map['priority'] as String?) ?? Priority.normal,
-      status: DonorMatchStatus.fromString(map['status'] as String?) ??
+      status:
+          DonorMatchStatus.fromString(map['status'] as String?) ??
           DonorMatchStatus.pending,
       shareContact: map['shareContact'] as bool? ?? false,
       message: map['message'] as String?,
@@ -45,18 +45,18 @@ class DonorMatchRequestModel extends DonorMatchRequest {
   }
 
   Map<String, dynamic> toMap() => {
-        'requesterId': requesterId,
-        'bloodRequestId': bloodRequestId,
-        'donorId': donorId,
-        'bloodType': bloodType.firestoreValue,
-        'priority': priority.firestoreValue,
-        'status': status.firestoreValue,
-        'shareContact': shareContact,
-        'message': message,
-        'internalReference': internalReference,
-        'notifiedAt': dateToTs(notifiedAt),
-        'respondedAt': respondedAt == null ? null : dateToTs(respondedAt!),
-        'expiresAt': dateToTs(expiresAt),
-        'createdAt': dateToTs(createdAt),
-      };
+    'requesterId': requesterId,
+    'bloodRequestId': bloodRequestId,
+    'donorId': donorId,
+    'bloodType': bloodType.firestoreValue,
+    'priority': priority.firestoreValue,
+    'status': status.firestoreValue,
+    'shareContact': shareContact,
+    'message': message,
+    'internalReference': internalReference,
+    'notifiedAt': dateToTs(notifiedAt),
+    'respondedAt': respondedAt == null ? null : dateToTs(respondedAt!),
+    'expiresAt': dateToTs(expiresAt),
+    'createdAt': dateToTs(createdAt),
+  };
 }

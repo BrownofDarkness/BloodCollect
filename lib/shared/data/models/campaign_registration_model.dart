@@ -15,13 +15,16 @@ class CampaignRegistrationModel extends CampaignRegistration {
   });
 
   factory CampaignRegistrationModel.fromMap(
-      Map<String, dynamic> map, String id) {
+    Map<String, dynamic> map,
+    String id,
+  ) {
     return CampaignRegistrationModel(
       id: id,
       campaignId: map['campaignId'] as String? ?? '',
       donorId: map['donorId'] as String? ?? '',
       scheduledTime: tsToDateOrNull(map['scheduledTime']),
-      status: RegistrationStatus.fromString(map['status'] as String?) ??
+      status:
+          RegistrationStatus.fromString(map['status'] as String?) ??
           RegistrationStatus.registered,
       createdAt: tsToDate(map['createdAt'], fallback: DateTime.now()),
       updatedAt: tsToDate(map['updatedAt'], fallback: DateTime.now()),
@@ -29,12 +32,11 @@ class CampaignRegistrationModel extends CampaignRegistration {
   }
 
   Map<String, dynamic> toMap() => {
-        'campaignId': campaignId,
-        'donorId': donorId,
-        'scheduledTime':
-            scheduledTime == null ? null : dateToTs(scheduledTime!),
-        'status': status.firestoreValue,
-        'createdAt': dateToTs(createdAt),
-        'updatedAt': dateToTs(updatedAt),
-      };
+    'campaignId': campaignId,
+    'donorId': donorId,
+    'scheduledTime': scheduledTime == null ? null : dateToTs(scheduledTime!),
+    'status': status.firestoreValue,
+    'createdAt': dateToTs(createdAt),
+    'updatedAt': dateToTs(updatedAt),
+  };
 }

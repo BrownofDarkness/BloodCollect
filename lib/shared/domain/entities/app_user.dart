@@ -64,8 +64,9 @@ class AppUser {
       city: city != null ? city() : this.city,
       commune: commune != null ? commune() : this.commune,
       isAvailableToDonate: isAvailableToDonate ?? this.isAvailableToDonate,
-      lastDonationDate:
-          lastDonationDate != null ? lastDonationDate() : this.lastDonationDate,
+      lastDonationDate: lastDonationDate != null
+          ? lastDonationDate()
+          : this.lastDonationDate,
       fcmToken: fcmToken != null ? fcmToken() : this.fcmToken,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

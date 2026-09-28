@@ -17,18 +17,19 @@ class ValidationRequestModel extends ValidationRequest {
     required super.updatedAt,
   });
 
-  factory ValidationRequestModel.fromMap(
-      Map<String, dynamic> map, String id) {
+  factory ValidationRequestModel.fromMap(Map<String, dynamic> map, String id) {
     return ValidationRequestModel(
       id: id,
       structureId: map['structureId'] as String? ?? '',
-      structureType: StructureType.fromString(
-              map['structureType'] as String?) ??
+      structureType:
+          StructureType.fromString(map['structureType'] as String?) ??
           StructureType.healthCenter,
       userId: map['userId'] as String? ?? '',
-      documentUrls:
-          ((map['documentUrls'] as List?) ?? []).map((e) => '$e').toList(),
-      status: VerificationStatus.fromString(map['status'] as String?) ??
+      documentUrls: ((map['documentUrls'] as List?) ?? [])
+          .map((e) => '$e')
+          .toList(),
+      status:
+          VerificationStatus.fromString(map['status'] as String?) ??
           VerificationStatus.pending,
       reviewedBy: map['reviewedBy'] as String?,
       reviewNotes: map['reviewNotes'] as String?,
@@ -38,14 +39,14 @@ class ValidationRequestModel extends ValidationRequest {
   }
 
   Map<String, dynamic> toMap() => {
-        'structureId': structureId,
-        'structureType': structureType.firestoreValue,
-        'userId': userId,
-        'documentUrls': documentUrls,
-        'status': status.firestoreValue,
-        'reviewedBy': reviewedBy,
-        'reviewNotes': reviewNotes,
-        'createdAt': dateToTs(createdAt),
-        'updatedAt': dateToTs(updatedAt),
-      };
+    'structureId': structureId,
+    'structureType': structureType.firestoreValue,
+    'userId': userId,
+    'documentUrls': documentUrls,
+    'status': status.firestoreValue,
+    'reviewedBy': reviewedBy,
+    'reviewNotes': reviewNotes,
+    'createdAt': dateToTs(createdAt),
+    'updatedAt': dateToTs(updatedAt),
+  };
 }

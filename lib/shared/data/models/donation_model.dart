@@ -31,7 +31,8 @@ class DonationModel extends Donation {
           BloodType.fromString(map['bloodType'] as String?) ?? BloodType.oPos,
       quantity: (map['quantity'] as num?)?.toInt(),
       donationDate: tsToDate(map['donationDate'], fallback: DateTime.now()),
-      status: DonationStatus.fromString(map['status'] as String?) ??
+      status:
+          DonationStatus.fromString(map['status'] as String?) ??
           DonationStatus.pendingValidation,
       validatedBy: map['validatedBy'] as String?,
       notes: map['notes'] as String?,
@@ -41,17 +42,17 @@ class DonationModel extends Donation {
   }
 
   Map<String, dynamic> toMap() => {
-        'donorId': donorId,
-        'structureId': structureId,
-        'campaignId': campaignId,
-        'bloodRequestId': bloodRequestId,
-        'bloodType': bloodType.firestoreValue,
-        'quantity': quantity,
-        'donationDate': dateToTs(donationDate),
-        'status': status.firestoreValue,
-        'validatedBy': validatedBy,
-        'notes': notes,
-        'createdAt': dateToTs(createdAt),
-        'updatedAt': dateToTs(updatedAt),
-      };
+    'donorId': donorId,
+    'structureId': structureId,
+    'campaignId': campaignId,
+    'bloodRequestId': bloodRequestId,
+    'bloodType': bloodType.firestoreValue,
+    'quantity': quantity,
+    'donationDate': dateToTs(donationDate),
+    'status': status.firestoreValue,
+    'validatedBy': validatedBy,
+    'notes': notes,
+    'createdAt': dateToTs(createdAt),
+    'updatedAt': dateToTs(updatedAt),
+  };
 }

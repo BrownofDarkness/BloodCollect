@@ -16,7 +16,11 @@ class RegisterScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.person_add_outlined, size: 48, color: AppColors.rouge),
+            const Icon(
+              Icons.person_add_outlined,
+              size: 48,
+              color: AppColors.rouge,
+            ),
             const SizedBox(height: 16),
             Text('Inscription ($role) — à implémenter'),
           ],

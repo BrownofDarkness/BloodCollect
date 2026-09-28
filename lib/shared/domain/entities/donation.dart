@@ -53,8 +53,9 @@ class Donation {
       donorId: donorId ?? this.donorId,
       structureId: structureId ?? this.structureId,
       campaignId: campaignId != null ? campaignId() : this.campaignId,
-      bloodRequestId:
-          bloodRequestId != null ? bloodRequestId() : this.bloodRequestId,
+      bloodRequestId: bloodRequestId != null
+          ? bloodRequestId()
+          : this.bloodRequestId,
       bloodType: bloodType ?? this.bloodType,
       quantity: quantity != null ? quantity() : this.quantity,
       donationDate: donationDate ?? this.donationDate,
