@@ -69,13 +69,22 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
 
   String? redirect(BuildContext context, GoRouterState state) {
     final authAsync = ref.read(authStateProvider);
-    final roleAsync = ref.read(currentUserRoleProvider);
+    final loc = state.matchedLocation;
 
+    // Le contournement de développement court-circuite la résolution de l'état
+    // d'authentification. Sans ce cas, le splash reste affiché : Firebase Auth
+    // n'émet rien tant qu'aucune session n'existe, donc `isLoading` ne bascule
+    // jamais et la redirection n'est jamais évaluée.
+    if (AppDebug.skipAuth) {
+      final home = _homeForRole(_debugRole);
+      return loc == home ? null : home;
+    }
+
+    final roleAsync = ref.read(currentUserRoleProvider);
     if (authAsync.isLoading || roleAsync.isLoading) return null;
 
     final user = authAsync.asData?.value;
     final role = roleAsync.asData?.value;
-    final loc = state.matchedLocation;
 
     final isPublic =
         loc == AppRoutes.splash ||
@@ -83,14 +92,6 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
         loc.startsWith('/register');
 
     if (user == null) {
-      // Contournement de développement : ouvre l'accueil du rôle demandé
-      // sans exiger de session. Inactif sans `--dart-define=SKIP_AUTH=true`.
-      // Une fois arrivé, on laisse la navigation se dérouler pour éviter une
-      // boucle de redirection.
-      if (AppDebug.skipAuth && !isPublic) {
-        final home = _homeForRole(_debugRole);
-        return loc == home ? null : home;
-      }
       return isPublic ? null : AppRoutes.login;
     }
 
