@@ -19,7 +19,7 @@ import '../../../../core/constants/app_colors.dart';
 class BloodCenterMapBanner extends StatelessWidget {
   const BloodCenterMapBanner({
     super.key,
-    this.height = 210,
+    this.height = 300,
     this.caption = 'Carte · emplacement du centre',
   });
 
@@ -68,29 +68,29 @@ class _MapBackdropPainter extends CustomPainter {
 
     final road = Paint()
       ..color = AppColors.surface
-      ..strokeWidth = 14
+      ..strokeWidth = 11
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
-    // Deux voies principales en diagonale et une transversale, décalées pour
-    // éviter une géométrie centrée et donner une lecture de carrefours.
+    // Les voies longent les bords du bandeau et se croisent sous le marqueur
+    // plutôt que de le traverser, pour que l'épingle reste lisible.
     canvas.drawPath(
       Path()
-        ..moveTo(-size.width * 0.15, size.height * 0.62)
-        ..lineTo(size.width * 0.55, -size.height * 0.1),
+        ..moveTo(-size.width * 0.05, size.height * 0.78)
+        ..lineTo(size.width * 0.62, size.height * 0.12),
       road,
     );
     canvas.drawPath(
       Path()
-        ..moveTo(size.width * 1.1, size.height * 0.15)
-        ..lineTo(size.width * 0.35, size.height * 1.1),
+        ..moveTo(size.width * 1.05, size.height * 0.22)
+        ..lineTo(size.width * 0.45, size.height * 1.05),
       road,
     );
     canvas.drawPath(
       Path()
-        ..moveTo(size.width * 0.05, size.height * 1.02)
-        ..lineTo(size.width * 0.95, size.height * 0.78),
-      road..strokeWidth = 10,
+        ..moveTo(size.width * 0.02, size.height * 1.05)
+        ..lineTo(size.width * 0.98, size.height * 0.88),
+      road..strokeWidth = 8,
     );
   }
 
@@ -104,8 +104,8 @@ class _CenterPin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 56,
-      height: 56,
+      width: 64,
+      height: 64,
       decoration: BoxDecoration(
         color: AppColors.rouge,
         shape: BoxShape.circle,
@@ -118,7 +118,7 @@ class _CenterPin extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(Icons.location_on, color: Colors.white, size: 26),
+      child: const Icon(Icons.location_on, color: Colors.white, size: 30),
     );
   }
 }
