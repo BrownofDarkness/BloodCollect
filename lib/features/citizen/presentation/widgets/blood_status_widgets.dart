@@ -197,24 +197,30 @@ class BloodAvailabilityTile extends StatelessWidget {
       label: '${bloodType.label} : ${style.label}',
       excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 11),
         decoration: BoxDecoration(
           color: style.background,
           borderRadius: BorderRadius.circular(12),
         ),
+        // Le libellé et son repère sont centrés sans dépendre de la hauteur
+        // disponible : la case garde une proportion fixe et le texte ne peut
+        // pas pousser le repère hors de la zone teintée.
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               bloodType.label,
+              maxLines: 1,
               style: TextStyle(
                 color: style.foreground,
-                fontSize: 16,
+                fontSize: 15,
+                height: 1.1,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 4),
-            Icon(style.icon, size: 11, color: style.foreground),
+            const SizedBox(height: 6),
+            Icon(style.icon, size: 12, color: style.foreground),
           ],
         ),
       ),
@@ -239,9 +245,9 @@ class BloodAvailabilityGrid extends StatelessWidget {
           crossAxisCount: columns,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: 1.9,
+          mainAxisSpacing: 9,
+          crossAxisSpacing: 9,
+          childAspectRatio: 2.05,
           children: [
             for (final bloodType in BloodType.values)
               BloodAvailabilityTile(
