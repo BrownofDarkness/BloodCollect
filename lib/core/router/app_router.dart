@@ -20,6 +20,41 @@ import '../../features/health_center/presentation/screens/hc_shell.dart';
 
 part 'app_router.g.dart';
 
+/// Aiguille vers la section du rôle, ou vers son accueil depuis une route
+/// publique. Une route déjà dans la bonne section n'est pas redirigée, ce qui
+/// laisse la navigation libre.
+///
+/// Fonction pure : elle ne dépend ni du contexte ni de l'état d'auth, donc
+/// elle est testable directement.
+String? redirectForRole(String matchedLocation, String? roleValue) {
+  final isPublicRoute =
+      matchedLocation == AppRoutes.splash ||
+      matchedLocation == AppRoutes.login ||
+      matchedLocation.startsWith('/register');
+
+  final role = UserRole.fromString(roleValue);
+  if (isPublicRoute) return homeForRole(role);
+
+  return switch (role) {
+    UserRole.citizen when !matchedLocation.startsWith('/citizen') =>
+      AppRoutes.citizenHome,
+    UserRole.healthCenter when !matchedLocation.startsWith('/hc') =>
+      AppRoutes.hcHome,
+    UserRole.bloodCenter when !matchedLocation.startsWith('/bc') =>
+      AppRoutes.bcHome,
+    _ => null,
+  };
+}
+
+/// Accueil d'un rôle. `null` tombe sur la connexion.
+String homeForRole(UserRole? role) => switch (role) {
+  UserRole.citizen => AppRoutes.citizenHome,
+  UserRole.healthCenter => AppRoutes.hcHome,
+  UserRole.bloodCenter => AppRoutes.bcHome,
+  UserRole.admin => AppRoutes.citizenHome,
+  null => AppRoutes.login,
+};
+
 abstract final class AppRoutes {
   static const splash = '/';
   static const login = '/login';
@@ -68,22 +103,22 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
   void removeListener(VoidCallback listener) => _routerListener = null;
 
   String? redirect(BuildContext context, GoRouterState state) {
-    final authAsync = ref.read(authStateProvider);
-    final loc = state.matchedLocation;
+    // Contournement de développement : court-circuite l'authentification,
+    // que Firebase ne résout jamais sans session. Le rôle est celui demandé au
+    // lancement et l'absence de session n'est pas bloquante ; on applique donc
+    // la même logique de rôle que le cas nominal, qui laisse naviguer dans la
+    // section au lieu de renvoyer vers l'accueil en boucle.
+    if (AppDebug.skipAuth) {
+      return _redirectForRole(state, AppDebug.startRole);
+    }
 
+    final loc = state.matchedLocation;
     final isPublicRoute =
         loc == AppRoutes.splash ||
         loc == AppRoutes.login ||
         loc.startsWith('/register');
 
-    // Contournement de développement : court-circuite la résolution de l'état
-    // d'authentification, que Firebase ne fournit jamais sans session. Il ne
-    // sert qu'à sortir des routes publiques ; passé l'accueil, la navigation
-    // est laissée libre, sinon chaque onglet serait renvoyé à l'accueil.
-    if (AppDebug.skipAuth && isPublicRoute) {
-      return _homeForRole(_debugRole);
-    }
-
+    final authAsync = ref.read(authStateProvider);
     final roleAsync = ref.read(currentUserRoleProvider);
     if (authAsync.isLoading || roleAsync.isLoading) return null;
 
@@ -94,31 +129,11 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
       return isPublicRoute ? null : AppRoutes.login;
     }
 
-    if (isPublicRoute) return _homeForRole(role);
-
-    if (role == UserRole.citizen && !loc.startsWith('/citizen')) {
-      return AppRoutes.citizenHome;
-    }
-    if (role == UserRole.healthCenter && !loc.startsWith('/hc')) {
-      return AppRoutes.hcHome;
-    }
-    if (role == UserRole.bloodCenter && !loc.startsWith('/bc')) {
-      return AppRoutes.bcHome;
-    }
-
-    return null;
+    return _redirectForRole(state, role?.firestoreValue);
   }
 
-  String _homeForRole(UserRole? role) => switch (role) {
-    UserRole.citizen => AppRoutes.citizenHome,
-    UserRole.healthCenter => AppRoutes.hcHome,
-    UserRole.bloodCenter => AppRoutes.bcHome,
-    UserRole.admin => AppRoutes.citizenHome,
-    null => AppRoutes.login,
-  };
-
-  /// Rôle demandé par `--dart-define=START_ROLE=...`.
-  UserRole? get _debugRole => UserRole.fromString(AppDebug.startRole);
+  String? _redirectForRole(GoRouterState state, String? roleValue) =>
+      redirectForRole(state.matchedLocation, roleValue);
 }
 
 @Riverpod(keepAlive: true)
