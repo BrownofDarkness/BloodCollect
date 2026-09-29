@@ -320,22 +320,34 @@ class _SignOutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: onTap,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.rouge,
-          minimumSize: const Size(double.infinity, 54),
-          side: const BorderSide(color: AppColors.ligne, width: 1.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    // Carte blanche cliquable, alignée à gauche comme les lignes de profil :
+    // la déconnexion est une action du même registre, pas un bouton de
+    // promotion.
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          child: Row(
+            children: [
+              const Icon(Icons.logout, size: 20, color: AppColors.rouge),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Text(
+                  'Se déconnecter',
+                  style: TextStyle(
+                    color: AppColors.rouge,
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        icon: const Icon(Icons.logout, size: 18),
-        label: const Text(
-          'Se déconnecter',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ),
     );
