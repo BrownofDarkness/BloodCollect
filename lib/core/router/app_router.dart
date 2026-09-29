@@ -71,13 +71,17 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
     final authAsync = ref.read(authStateProvider);
     final loc = state.matchedLocation;
 
-    // Le contournement de développement court-circuite la résolution de l'état
-    // d'authentification. Sans ce cas, le splash reste affiché : Firebase Auth
-    // n'émet rien tant qu'aucune session n'existe, donc `isLoading` ne bascule
-    // jamais et la redirection n'est jamais évaluée.
-    if (AppDebug.skipAuth) {
-      final home = _homeForRole(_debugRole);
-      return loc == home ? null : home;
+    final isPublicRoute =
+        loc == AppRoutes.splash ||
+        loc == AppRoutes.login ||
+        loc.startsWith('/register');
+
+    // Contournement de développement : court-circuite la résolution de l'état
+    // d'authentification, que Firebase ne fournit jamais sans session. Il ne
+    // sert qu'à sortir des routes publiques ; passé l'accueil, la navigation
+    // est laissée libre, sinon chaque onglet serait renvoyé à l'accueil.
+    if (AppDebug.skipAuth && isPublicRoute) {
+      return _homeForRole(_debugRole);
     }
 
     final roleAsync = ref.read(currentUserRoleProvider);
@@ -86,16 +90,11 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
     final user = authAsync.asData?.value;
     final role = roleAsync.asData?.value;
 
-    final isPublic =
-        loc == AppRoutes.splash ||
-        loc == AppRoutes.login ||
-        loc.startsWith('/register');
-
     if (user == null) {
-      return isPublic ? null : AppRoutes.login;
+      return isPublicRoute ? null : AppRoutes.login;
     }
 
-    if (isPublic) return _homeForRole(role);
+    if (isPublicRoute) return _homeForRole(role);
 
     if (role == UserRole.citizen && !loc.startsWith('/citizen')) {
       return AppRoutes.citizenHome;
