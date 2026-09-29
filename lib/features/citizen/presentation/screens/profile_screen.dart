@@ -50,9 +50,11 @@ class _ProfileBody extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
       children: [
-        const CitizenScreenHeader(
+        CitizenScreenHeader(
           contextLabel: 'Citoyen',
           contextIcon: Icons.person_outline,
+          tone: ContextTone.person,
+          onBack: () => context.go(AppRoutes.citizenHome),
         ),
         const SizedBox(height: 18),
         const CitizenPageTitle('Profil'),

@@ -2,32 +2,37 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 
-/// En-tête commun aux écrans du module Citoyen : flèche de retour optionnelle
-/// et pastille de contexte (« Sang · Centres agréés », « Don volontaire »…).
+/// En-tête commun aux écrans du module Citoyen : flèche de retour et pastille
+/// de contexte (« Sang · Centres agréés », « Don volontaire », « Citoyen »).
 ///
-/// La pastille rappelle le code couleur du design system : rouge pour le sang,
-/// bleu pour les personnes.
+/// La pastille porte le code couleur du design system : rouge pour le sang,
+/// bleu pour les personnes. L'écran ProfilConcernant un citoyen, sa pastille
+/// est donc bleue — c'est le seul écran du module dans ce cas.
 class CitizenScreenHeader extends StatelessWidget {
   const CitizenScreenHeader({
     super.key,
     required this.contextLabel,
     required this.contextIcon,
-    this.onBack,
+    required this.tone,
+    required this.onBack,
   });
 
   final String contextLabel;
   final IconData contextIcon;
-  final VoidCallback? onBack;
+
+  /// Teinte de la pastille : `ContextTone.blood` ou `ContextTone.person`.
+  final ContextTone tone;
+
+  /// Retour à l'accueil du shell. Toujours présent sur ces écrans.
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if (onBack != null) ...[
-          _BackButton(onTap: onBack!),
-          const SizedBox(width: 12),
-        ],
-        _ContextPill(label: contextLabel, icon: contextIcon),
+        _BackButton(onTap: onBack),
+        const SizedBox(width: 12),
+        _ContextPill(label: contextLabel, icon: contextIcon, tone: tone),
       ],
     );
   }
@@ -55,29 +60,53 @@ class _BackButton extends StatelessWidget {
   }
 }
 
+/// Teinte d'une pastille de contexte, alignée sur le code couleur du produit.
+enum ContextTone {
+  /// Sang : stocks, collectes, disponibilités.
+  blood,
+
+  /// Personnes : profil du citoyen.
+  person;
+
+  Color get foreground => switch (this) {
+    ContextTone.blood => AppColors.rouge,
+    ContextTone.person => AppColors.bleu,
+  };
+
+  Color get background => switch (this) {
+    ContextTone.blood => AppColors.roseLight,
+    ContextTone.person => AppColors.bleuSurface,
+  };
+}
+
 class _ContextPill extends StatelessWidget {
-  const _ContextPill({required this.label, required this.icon});
+  const _ContextPill({
+    required this.label,
+    required this.icon,
+    required this.tone,
+  });
 
   final String label;
   final IconData icon;
+  final ContextTone tone;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.roseLight,
+        color: tone.background,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppColors.rouge),
+          Icon(icon, size: 12, color: tone.foreground),
           const SizedBox(width: 6),
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
-              color: AppColors.rouge,
+            style: TextStyle(
+              color: tone.foreground,
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.1,

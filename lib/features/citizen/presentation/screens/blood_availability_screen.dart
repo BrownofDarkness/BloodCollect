@@ -61,9 +61,11 @@ class _BloodAvailabilityBody extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
-          const CitizenScreenHeader(
+          CitizenScreenHeader(
             contextLabel: 'Sang $middleDot Centres agréés',
             contextIcon: Icons.water_drop_outlined,
+            tone: ContextTone.blood,
+            onBack: () => context.go(AppRoutes.citizenHome),
           ),
           const SizedBox(height: 18),
           const CitizenPageTitle('Disponibilité du sang'),

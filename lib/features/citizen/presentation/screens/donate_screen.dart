@@ -57,9 +57,11 @@ class _DonateBody extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
         children: [
-          const CitizenScreenHeader(
+          CitizenScreenHeader(
             contextLabel: 'Don volontaire',
             contextIcon: Icons.favorite_outline,
+            tone: ContextTone.blood,
+            onBack: () => context.go(AppRoutes.citizenHome),
           ),
           const SizedBox(height: 18),
           const CitizenPageTitle('Je veux donner mon sang'),
