@@ -23,15 +23,18 @@ enum UserRole {
   };
 }
 
+// L'ordre de déclaration est l'ordre d'affichage dans l'app : les groupes sont
+// présentés de O+ à AB-, pas alphabétiquement. Toute liste qui parcourt
+// `BloodType.values` (filtre, grille des disponibilités) suit donc cet ordre.
 enum BloodType {
+  oPos,
+  oNeg,
   aPos,
   aNeg,
   bPos,
   bNeg,
   abPos,
-  abNeg,
-  oPos,
-  oNeg;
+  abNeg;
 
   static BloodType? fromString(String? value) => switch (value) {
     'A+' => BloodType.aPos,
