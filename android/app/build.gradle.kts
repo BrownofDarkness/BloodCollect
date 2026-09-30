@@ -33,6 +33,13 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+
+            // R8 runs out of memory on this machine and the release build
+            // fails. Shipping unminified Dart AOT code: the APK stays small
+            // because `--split-per-abi` already strips unused ABIs. Re-enable
+            // isMinifyEnabled once a machine with more RAM is available.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
