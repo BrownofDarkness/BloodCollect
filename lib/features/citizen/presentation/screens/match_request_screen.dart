@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/presentation/models/donor_search_candidate.dart';
@@ -48,8 +49,14 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Demande de mise en\nrelation',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, height: 1.15)),
+            const Text(
+              'Demande de mise en\nrelation',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                height: 1.15,
+              ),
+            ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(14),
@@ -63,16 +70,26 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: AppColors.bleuLight,
-                    child: Text(widget.candidate.bloodType.label,
-                        style: const TextStyle(color: AppColors.bleu, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      widget.candidate.bloodType.label,
+                      style: const TextStyle(
+                        color: AppColors.bleu,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Donneur potentiel', style: TextStyle(fontWeight: FontWeight.w700)),
-                      Text('${widget.candidate.commune} · ${widget.candidate.distanceKm.toStringAsFixed(1)} km',
-                          style: const TextStyle(color: AppColors.textSecondary)),
+                      const Text(
+                        'Donneur potentiel',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        '${widget.candidate.commune} · ${widget.candidate.distanceKm.toStringAsFixed(1)} km',
+                        style: const TextStyle(color: AppColors.textSecondary),
+                      ),
                     ],
                   ),
                 ],
@@ -81,7 +98,10 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
             const SizedBox(height: 24),
             const _Label("NIVEAU D'URGENCE"),
             const SizedBox(height: 8),
-            UrgencySelector(value: form.priority, onChanged: notifier.setPriority),
+            UrgencySelector(
+              value: form.priority,
+              onChanged: notifier.setPriority,
+            ),
             const SizedBox(height: 20),
             const _Label('MESSAGE AU DONNEUR (FACULTATIF)'),
             const SizedBox(height: 8),
@@ -90,7 +110,8 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
               maxLines: 3,
               onChanged: notifier.setMessage,
               decoration: InputDecoration(
-                hintText: 'Ex. : merci de vous présenter au centre de transfusion le plus proche',
+                hintText:
+                    'Ex. : merci de vous présenter au centre de transfusion le plus proche',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -117,17 +138,25 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Partager mes coordonnées après acceptation',
-                            style: TextStyle(fontWeight: FontWeight.w700)),
+                        const Text(
+                          'Partager mes coordonnées après acceptation',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                         const SizedBox(height: 4),
                         const Text(
                           'Le numéro du demandeur est transmis seulement si le donneur accepte.',
-                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Switch(value: form.shareContact, onChanged: notifier.setShareContact),
+                  Switch(
+                    value: form.shareContact,
+                    onChanged: notifier.setShareContact,
+                  ),
                 ],
               ),
             ),
@@ -143,10 +172,20 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.visibility_outlined, size: 16, color: AppColors.bleu),
+                      Icon(
+                        Icons.visibility_outlined,
+                        size: 16,
+                        color: AppColors.bleu,
+                      ),
                       SizedBox(width: 6),
-                      Text('CE QUE VERRA LE DONNEUR',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.bleu)),
+                      Text(
+                        'CE QUE VERRA LE DONNEUR',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.bleu,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -158,7 +197,10 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
                   Text(
                     '${widget.candidate.commune} · Urgence ${form.priority.label.toLowerCase()} · '
                     'Don dans un centre agréé uniquement',
-                    style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -173,18 +215,28 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
                         try {
                           await notifier.submit(widget.candidate.donorId);
                           if (!context.mounted) return;
-                          Navigator.of(context).pop(true);
+                          context.pop(true);
                         } catch (e) {
                           if (!context.mounted) return;
-                          AppSnackbar.error(context, "Échec de l'envoi. Réessayez.");
+                          AppSnackbar.error(
+                            context,
+                            "Échec de l'envoi. Réessayez.",
+                          );
                         }
                       },
                 icon: form.isSubmitting
                     ? const SizedBox(
-                        width: 16, height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : const Icon(Icons.send_outlined, size: 18),
-                label: Text(form.isSubmitting ? 'Envoi en cours…' : 'Envoyer la demande'),
+                label: Text(
+                  form.isSubmitting ? 'Envoi en cours…' : 'Envoyer la demande',
+                ),
               ),
             ),
           ],
@@ -200,8 +252,14 @@ class _Label extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
-        style: const TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 0.4));
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textSecondary,
+        letterSpacing: 0.4,
+      ),
+    );
   }
 }

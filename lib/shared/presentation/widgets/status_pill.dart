@@ -38,13 +38,23 @@ class MatchStatusPill extends StatelessWidget {
     final (fg, bg, icon) = visual;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 13, color: fg),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.w600, fontSize: 13)),
+          Text(
+            label,
+            style: TextStyle(
+              color: fg,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );

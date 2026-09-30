@@ -33,12 +33,15 @@ class FakeDonorRepository implements DonorRepository {
     }
 
     final pool = [...mockDonorsFixture, ...generateDonorCandidates(15)];
-    final results = pool
-        .where((d) =>
-            d.bloodType == bloodType &&
-            (communes.isEmpty || communes.contains(d.commune)))
-        .toList()
-      ..sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+    final results =
+        pool
+            .where(
+              (d) =>
+                  d.bloodType == bloodType &&
+                  (communes.isEmpty || communes.contains(d.commune)),
+            )
+            .toList()
+          ..sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
 
     return results;
   }
@@ -93,11 +96,18 @@ class FakeDonorRepository implements DonorRepository {
         commune: '—',
       );
     }
-    return RequesterInfo(role: match.role, displayName: match.name, commune: match.commune);
+    return RequesterInfo(
+      role: match.role,
+      displayName: match.name,
+      commune: match.commune,
+    );
   }
 
   @override
-  Future<void> respondToRequest(String requestId, DonorMatchStatus response) async {
+  Future<void> respondToRequest(
+    String requestId,
+    DonorMatchStatus response,
+  ) async {
     await Future.delayed(const Duration(milliseconds: 700));
     final current = _incoming[requestId];
     if (current != null) {

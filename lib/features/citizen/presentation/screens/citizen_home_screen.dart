@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../shared/domain/entities/campaign.dart';
 import '../../../../shared/presentation/widgets/loading_skeleton.dart';
 import '../providers/donor_providers.dart';
-import 'donor_search_screen.dart';
 
 /// Écran 3 — Accueil citoyen. Dashboard en lecture seule : profil (AppUser),
 /// 3 cartes d'action, et les collectes à proximité (état vide géré).
@@ -32,7 +33,10 @@ class CitizenHomeScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.bleuLight,
                       borderRadius: BorderRadius.circular(20),
@@ -42,15 +46,24 @@ class CitizenHomeScreen extends ConsumerWidget {
                       children: [
                         Icon(Icons.person, size: 14, color: AppColors.bleu),
                         SizedBox(width: 6),
-                        Text('CITOYEN',
-                            style: TextStyle(color: AppColors.bleu, fontWeight: FontWeight.w700, fontSize: 12)),
+                        Text(
+                          'CITOYEN',
+                          style: TextStyle(
+                            color: AppColors.bleu,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
                     child: const Icon(Icons.notifications_none),
                   ),
                 ],
@@ -59,15 +72,28 @@ class CitizenHomeScreen extends ConsumerWidget {
               profileAsync.when(
                 loading: () => const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [SkeletonBox(width: 160, height: 28), SizedBox(height: 12), SkeletonBox(height: 64)],
+                  children: [
+                    SkeletonBox(width: 160, height: 28),
+                    SizedBox(height: 12),
+                    SkeletonBox(height: 64),
+                  ],
                 ),
-                error: (_, _) => const Text('Profil indisponible pour le moment.'),
+                error: (_, _) =>
+                    const Text('Profil indisponible pour le moment.'),
                 data: (profile) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Bonjour,', style: TextStyle(color: AppColors.textSecondary)),
-                    Text('${profile.firstName} ${profile.lastName}',
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+                    const Text(
+                      'Bonjour,',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                    Text(
+                      '${profile.firstName} ${profile.lastName}',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -82,24 +108,46 @@ class CitizenHomeScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Mon groupe', style: TextStyle(color: AppColors.textSecondary)),
+                                const Text(
+                                  'Mon groupe',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
                                 Text(
                                   profile.bloodType?.label ?? 'Non renseigné',
                                   style: const TextStyle(
-                                      fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.rouge),
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.rouge,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          Container(width: 1, height: 36, color: AppColors.ligne),
+                          Container(
+                            width: 1,
+                            height: 36,
+                            color: AppColors.ligne,
+                          ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Ma commune', style: TextStyle(color: AppColors.textSecondary)),
-                                Text(profile.commune ?? '—',
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                const Text(
+                                  'Ma commune',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                Text(
+                                  profile.commune ?? '—',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -110,7 +158,10 @@ class CitizenHomeScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text('Que souhaitez-vous faire ?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const Text(
+                'Que souhaitez-vous faire ?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 12),
               _ActionCard(
                 badgeLabel: 'PERSONNE',
@@ -119,8 +170,7 @@ class CitizenHomeScreen extends ConsumerWidget {
                 icon: Icons.search,
                 title: 'Chercher un donneur',
                 subtitle: 'Trouver un donneur potentiel par ville et commune.',
-                onTap: () =>
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DonorSearchScreen())),
+                onTap: () => context.go(AppRoutes.citizenDonors),
               ),
               const SizedBox(height: 12),
               _ActionCard(
@@ -129,7 +179,8 @@ class CitizenHomeScreen extends ConsumerWidget {
                 badgeBg: AppColors.rougeLight,
                 icon: Icons.water_drop_outlined,
                 title: 'Voir la disponibilité de sang',
-                subtitle: 'Consulter les disponibilités déclarées par les centres de transfusion.',
+                subtitle:
+                    'Consulter les disponibilités déclarées par les centres de transfusion.',
                 onTap: () {}, // Écran "Sang" hors périmètre de cette tâche
               ),
               const SizedBox(height: 12),
@@ -139,7 +190,8 @@ class CitizenHomeScreen extends ConsumerWidget {
                 badgeBg: AppColors.rouge,
                 icon: Icons.favorite,
                 title: 'Je veux donner mon sang',
-                subtitle: 'Centres de transfusion et collectes près de chez vous.',
+                subtitle:
+                    'Centres de transfusion et collectes près de chez vous.',
                 onTap: () {}, // Écran "Donner" hors périmètre de cette tâche
                 filled: true,
               ),
@@ -147,15 +199,24 @@ class CitizenHomeScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Près de chez vous', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  const Text(
+                    'Près de chez vous',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
                   TextButton(onPressed: () {}, child: const Text('Tout voir')),
                 ],
               ),
               const SizedBox(height: 8),
               campaignsAsync.when(
-                loading: () =>
-                    const Column(children: [SkeletonBox(height: 88), SizedBox(height: 8), SkeletonBox(height: 88)]),
-                error: (_, _) => const Text('Impossible de charger les collectes.'),
+                loading: () => const Column(
+                  children: [
+                    SkeletonBox(height: 88),
+                    SizedBox(height: 8),
+                    SkeletonBox(height: 88),
+                  ],
+                ),
+                error: (_, _) =>
+                    const Text('Impossible de charger les collectes.'),
                 data: (campaigns) {
                   if (campaigns.isEmpty) {
                     return Container(
@@ -166,12 +227,19 @@ class CitizenHomeScreen extends ConsumerWidget {
                         border: Border.all(color: AppColors.ligne),
                       ),
                       child: const Center(
-                        child: Text('Aucune collecte prévue près de chez vous pour le moment.',
-                            style: TextStyle(color: AppColors.textSecondary), textAlign: TextAlign.center),
+                        child: Text(
+                          'Aucune collecte prévue près de chez vous pour le moment.',
+                          style: TextStyle(color: AppColors.textSecondary),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     );
                   }
-                  return Column(children: campaigns.map((c) => _CampaignTile(campaign: c)).toList());
+                  return Column(
+                    children: campaigns
+                        .map((c) => _CampaignTile(campaign: c))
+                        .toList(),
+                  );
                 },
               ),
             ],
@@ -184,9 +252,18 @@ class CitizenHomeScreen extends ConsumerWidget {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Donneurs'),
-          BottomNavigationBarItem(icon: Icon(Icons.water_drop_outlined), label: 'Sang'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Donner'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.water_drop_outlined),
+            label: 'Sang',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: 'Donner',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profil',
+          ),
         ],
       ),
     );
@@ -236,7 +313,10 @@ class _ActionCard extends StatelessWidget {
               Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(color: badgeBg, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: badgeBg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Icon(icon, color: badgeColor),
               ),
               const SizedBox(width: 14),
@@ -244,13 +324,29 @@ class _ActionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(badgeLabel,
-                        style: TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w700, color: subtitleColor, letterSpacing: 0.4)),
+                    Text(
+                      badgeLabel,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: subtitleColor,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: fg)),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: fg,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: TextStyle(fontSize: 13, color: subtitleColor)),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 13, color: subtitleColor),
+                    ),
                   ],
                 ),
               ),
@@ -271,8 +367,10 @@ class _CampaignTile extends StatelessWidget {
     const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     final d = campaign.startDate;
     final jour = jours[d.weekday - 1];
-    final h1 = '${campaign.startDate.hour}h${campaign.startDate.minute.toString().padLeft(2, '0')}';
-    final h2 = '${campaign.endDate.hour}h${campaign.endDate.minute.toString().padLeft(2, '0')}';
+    final h1 =
+        '${campaign.startDate.hour}h${campaign.startDate.minute.toString().padLeft(2, '0')}';
+    final h2 =
+        '${campaign.endDate.hour}h${campaign.endDate.minute.toString().padLeft(2, '0')}';
     return '$jour ${d.day} · $h1 – $h2';
   }
 
@@ -293,26 +391,56 @@ class _CampaignTile extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: AppColors.rougeLight, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Icons.campaign_outlined, color: AppColors.rouge, size: 18),
+            decoration: BoxDecoration(
+              color: AppColors.rougeLight,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.campaign_outlined,
+              color: AppColors.rouge,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('COLLECTE DE SANG',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.rouge)),
-                Text(campaign.title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                const Text(
+                  'COLLECTE DE SANG',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.rouge,
+                  ),
+                ),
+                Text(
+                  campaign.title,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 4),
-                Text(campaign.locationName, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                Text(_dateLabel(), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  campaign.locationName,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  _dateLabel(),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 6,
                   children: isOpenToAll
                       ? const [_MiniChip(label: 'Tous groupes')]
-                      : campaign.targetBloodTypes.map((t) => _MiniChip(label: t.label)).toList(),
+                      : campaign.targetBloodTypes
+                            .map((t) => _MiniChip(label: t.label))
+                            .toList(),
                 ),
               ],
             ),
@@ -331,8 +459,18 @@ class _MiniChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: AppColors.rougeLight, borderRadius: BorderRadius.circular(10)),
-      child: Text(label, style: const TextStyle(fontSize: 11, color: AppColors.rouge, fontWeight: FontWeight.w700)),
+      decoration: BoxDecoration(
+        color: AppColors.rougeLight,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          color: AppColors.rouge,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

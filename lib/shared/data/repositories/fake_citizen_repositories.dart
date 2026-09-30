@@ -16,8 +16,12 @@ class FakeCenterRepository implements CenterRepository {
   Future<BloodCenter?> nearestTo(String commune) async {
     await Future.delayed(const Duration(milliseconds: 300));
     if (mockCenters.isEmpty) return null;
-    mockCenters.sort((a, b) => CommuneDistances.forCommune(a.commune, seedKey: a.id)
-        .compareTo(CommuneDistances.forCommune(b.commune, seedKey: b.id)));
+    mockCenters.sort(
+      (a, b) => CommuneDistances.forCommune(
+        a.commune,
+        seedKey: a.id,
+      ).compareTo(CommuneDistances.forCommune(b.commune, seedKey: b.id)),
+    );
     return mockCenters.first;
   }
 }

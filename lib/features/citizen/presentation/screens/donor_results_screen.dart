@@ -2,8 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/presentation/models/enum_labels.dart';
 import '../../../../shared/presentation/widgets/app_snackbar.dart';
@@ -11,7 +13,6 @@ import '../../../../shared/presentation/widgets/donor_card.dart';
 import '../../../../shared/presentation/widgets/loading_skeleton.dart';
 import '../../../../shared/presentation/widgets/person_badge.dart';
 import '../providers/donor_providers.dart';
-import 'match_request_screen.dart';
 
 /// Écran 4 — "Donneurs potentiels". Consomme les filtres de l'écran 2 et
 /// gère explicitement les 4 états : chargement / vide / données / erreur.
@@ -39,8 +40,10 @@ class DonorResultsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Donneurs potentiels',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+                const Text(
+                  'Donneurs potentiels',
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
@@ -48,13 +51,15 @@ class DonorResultsScreen extends ConsumerWidget {
                   children: [
                     _FilterPill(text: filters.bloodType?.label ?? ''),
                     _FilterPill(text: filters.communes.join(', ')),
-                    _FilterPill(text: 'Urgence ${filters.priority.label.toLowerCase()}'),
+                    _FilterPill(
+                      text: 'Urgence ${filters.priority.label.toLowerCase()}',
+                    ),
                   ],
                 ),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     style: TextButton.styleFrom(padding: EdgeInsets.zero),
                     child: const Text('Modifier'),
                   ),
@@ -87,7 +92,8 @@ class DonorResultsScreen extends ConsumerWidget {
             child: resultsAsync.when(
               loading: () => const DonorListSkeleton(),
               error: (err, _) => _ErrorResults(
-                onRetry: () => ref.invalidate(donorSearchResultsProvider(filters)),
+                onRetry: () =>
+                    ref.invalidate(donorSearchResultsProvider(filters)),
               ),
               data: (donors) {
                 if (donors.isEmpty) return const _EmptyResults();
@@ -100,28 +106,37 @@ class DonorResultsScreen extends ConsumerWidget {
                     if (i == 0) {
                       return Text(
                         '${donors.length} donneur${donors.length > 1 ? 's' : ''} correspondent à votre recherche',
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
                       );
                     }
                     final raw = donors[i - 1];
                     // Si contacté pendant cette session mais que le fetch d'origine
                     // ne le savait pas encore, on force l'affichage "En attente".
-                    final candidate = contactedIds.contains(raw.donorId) && raw.matchStatus == null
+                    final candidate =
+                        contactedIds.contains(raw.donorId) &&
+                            raw.matchStatus == null
                         ? raw.copyWith(matchStatus: DonorMatchStatus.pending)
                         : raw;
 
                     return DonorCard(
                       candidate: candidate,
                       onContact: () async {
-                        final sent = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute(builder: (_) => MatchRequestScreen(candidate: candidate)),
+                        final sent = await context.push<bool>(
+                          AppRoutes.citizenDonorsRequest,
+                          extra: candidate,
                         );
                         if (sent == true) {
-                          ref.read(contactedDonorIdsProvider.notifier).update(
-                                (state) => {...state, candidate.donorId},
-                              );
+                          ref
+                              .read(contactedDonorIdsProvider.notifier)
+                              .update((state) => {...state, candidate.donorId});
                           if (context.mounted) {
-                            AppSnackbar.success(context, 'Demande envoyée à ce donneur.');
+                            AppSnackbar.success(
+                              context,
+                              'Demande envoyée à ce donneur.',
+                            );
                           }
                         }
                       },
@@ -151,7 +166,10 @@ class _FilterPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.ligne),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }
@@ -167,15 +185,28 @@ class _EmptyResults extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.search_off, size: 44, color: AppColors.textSecondary),
+            const Icon(
+              Icons.search_off,
+              size: 44,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(height: 14),
-            const Text('Aucun donneur ne correspond à votre recherche',
-                style: TextStyle(fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+            const Text(
+              'Aucun donneur ne correspond à votre recherche',
+              style: TextStyle(fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 6),
-            const Text("Essayez d'élargir les communes ou le niveau d'urgence.",
-                style: TextStyle(color: AppColors.textSecondary), textAlign: TextAlign.center),
+            const Text(
+              "Essayez d'élargir les communes ou le niveau d'urgence.",
+              style: TextStyle(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
-            OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Modifier la recherche')),
+            OutlinedButton(
+              onPressed: () => context.pop(),
+              child: const Text('Modifier la recherche'),
+            ),
           ],
         ),
       ),
@@ -197,10 +228,16 @@ class _ErrorResults extends StatelessWidget {
           children: [
             const Icon(Icons.wifi_off, size: 44, color: AppColors.indisponible),
             const SizedBox(height: 14),
-            const Text('Impossible de charger les donneurs', style: TextStyle(fontWeight: FontWeight.w700)),
+            const Text(
+              'Impossible de charger les donneurs',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 6),
-            const Text('Vérifiez votre connexion et réessayez.',
-                style: TextStyle(color: AppColors.textSecondary), textAlign: TextAlign.center),
+            const Text(
+              'Vérifiez votre connexion et réessayez.',
+              style: TextStyle(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Réessayer')),
           ],

@@ -6,11 +6,21 @@ class AppSnackbar {
   AppSnackbar._();
 
   static void success(BuildContext context, String message) {
-    _show(context, message, icon: Icons.check_circle, iconColor: AppColors.disponible);
+    _show(
+      context,
+      message,
+      icon: Icons.check_circle,
+      iconColor: AppColors.disponible,
+    );
   }
 
   static void error(BuildContext context, String message) {
-    _show(context, message, icon: Icons.error_outline, iconColor: AppColors.indisponible);
+    _show(
+      context,
+      message,
+      icon: Icons.error_outline,
+      iconColor: AppColors.indisponible,
+    );
   }
 
   static void info(BuildContext context, String message) {

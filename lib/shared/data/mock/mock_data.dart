@@ -158,16 +158,33 @@ final mockIncomingRequestFromCitizen = DonorMatchRequest(
 /// Résolution mock requesterId -> (rôle, nom affiché, commune).
 /// En Partie 2 : lookup Firestore sur `users` (+ `health_centers` si role
 /// == healthCenter pour le nom officiel de la structure).
-final Map<String, ({UserRole role, String name, String commune})> mockRequesters = {
-  'u_hc_treichville': (role: UserRole.healthCenter, name: 'CSCom de Treichville', commune: 'Treichville'),
-  'u_citizen_other': (role: UserRole.citizen, name: 'Un particulier', commune: 'Marcory'),
+final Map<String, ({UserRole role, String name, String commune})>
+mockRequesters = {
+  'u_hc_treichville': (
+    role: UserRole.healthCenter,
+    name: 'CSCom de Treichville',
+    commune: 'Treichville',
+  ),
+  'u_citizen_other': (
+    role: UserRole.citizen,
+    name: 'Un particulier',
+    commune: 'Marcory',
+  ),
 };
 
 /// --- Générateur seedé pour le volume de donneurs ---
 
 const _communes = [
-  'Treichville', 'Marcory', 'Cocody', 'Plateau', 'Yopougon',
-  'Abobo', 'Adjamé', 'Koumassi', 'Port-Bouët', 'Attécoubé',
+  'Treichville',
+  'Marcory',
+  'Cocody',
+  'Plateau',
+  'Yopougon',
+  'Abobo',
+  'Adjamé',
+  'Koumassi',
+  'Port-Bouët',
+  'Attécoubé',
 ];
 
 List<DonorSearchCandidate> generateDonorCandidates(int count, {int seed = 42}) {
@@ -191,13 +208,22 @@ List<DonorSearchCandidate> generateDonorCandidates(int count, {int seed = 42}) {
 /// "Donneurs potentiels" (O+, Treichville 2,5km / Marcory 4,2km / 5,1km).
 final mockDonorsFixture = <DonorSearchCandidate>[
   const DonorSearchCandidate(
-    donorId: 'd1', bloodType: BloodType.oPos, commune: 'Treichville',
-    distanceKm: 2.5, matchStatus: DonorMatchStatus.pending,
+    donorId: 'd1',
+    bloodType: BloodType.oPos,
+    commune: 'Treichville',
+    distanceKm: 2.5,
+    matchStatus: DonorMatchStatus.pending,
   ),
   const DonorSearchCandidate(
-    donorId: 'd2', bloodType: BloodType.oPos, commune: 'Marcory', distanceKm: 4.2,
+    donorId: 'd2',
+    bloodType: BloodType.oPos,
+    commune: 'Marcory',
+    distanceKm: 4.2,
   ),
   const DonorSearchCandidate(
-    donorId: 'd3', bloodType: BloodType.oPos, commune: 'Marcory', distanceKm: 5.1,
+    donorId: 'd3',
+    bloodType: BloodType.oPos,
+    commune: 'Marcory',
+    distanceKm: 5.1,
   ),
 ];

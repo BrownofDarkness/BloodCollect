@@ -16,10 +16,18 @@ import '../../../../shared/presentation/models/requester_info.dart';
 // --- Repositories ---
 // En Partie 2, remplacer uniquement ces 4 providers par les implémentations
 // Firestore : aucun écran n'a besoin d'être modifié.
-final donorRepositoryProvider = Provider<DonorRepository>((ref) => FakeDonorRepository());
-final centerRepositoryProvider = Provider<CenterRepository>((ref) => FakeCenterRepository());
-final campaignRepositoryProvider = Provider<CampaignRepository>((ref) => FakeCampaignRepository());
-final profileRepositoryProvider = Provider<ProfileRepository>((ref) => FakeProfileRepository());
+final donorRepositoryProvider = Provider<DonorRepository>(
+  (ref) => FakeDonorRepository(),
+);
+final centerRepositoryProvider = Provider<CenterRepository>(
+  (ref) => FakeCenterRepository(),
+);
+final campaignRepositoryProvider = Provider<CampaignRepository>(
+  (ref) => FakeCampaignRepository(),
+);
+final profileRepositoryProvider = Provider<ProfileRepository>(
+  (ref) => FakeProfileRepository(),
+);
 
 // --- Écran Accueil ---
 final citizenProfileProvider = FutureProvider<AppUser>((ref) {
@@ -72,27 +80,33 @@ class DonorSearchFiltersNotifier extends StateNotifier<DonorSearchFilters> {
     state = state.copyWith(communes: updated);
   }
 
-  void selectAllCommunes(List<String> all) => state = state.copyWith(communes: all.toSet());
+  void selectAllCommunes(List<String> all) =>
+      state = state.copyWith(communes: all.toSet());
 }
 
 final donorSearchFiltersProvider =
-    StateNotifierProvider.autoDispose<DonorSearchFiltersNotifier, DonorSearchFilters>(
-  (ref) => DonorSearchFiltersNotifier(),
-);
+    StateNotifierProvider.autoDispose<
+      DonorSearchFiltersNotifier,
+      DonorSearchFilters
+    >((ref) => DonorSearchFiltersNotifier());
 
 // --- Écran Donneurs potentiels ---
-final donorSearchResultsProvider =
-    FutureProvider.autoDispose.family<List<DonorSearchCandidate>, DonorSearchFilters>((ref, filters) {
-  return ref.watch(donorRepositoryProvider).searchDonors(
-        bloodType: filters.bloodType!,
-        communes: filters.communes.toList(),
-        priority: filters.priority,
-      );
-});
+final donorSearchResultsProvider = FutureProvider.autoDispose
+    .family<List<DonorSearchCandidate>, DonorSearchFilters>((ref, filters) {
+      return ref
+          .watch(donorRepositoryProvider)
+          .searchDonors(
+            bloodType: filters.bloodType!,
+            communes: filters.communes.toList(),
+            priority: filters.priority,
+          );
+    });
 
 /// Statut local des cartes déjà contactées dans cette session (évite un
 /// refetch juste pour basculer "Contacter" -> "En attente").
-final contactedDonorIdsProvider = StateProvider.autoDispose<Set<String>>((ref) => {});
+final contactedDonorIdsProvider = StateProvider.autoDispose<Set<String>>(
+  (ref) => {},
+);
 
 // --- Écran Demande de mise en relation ---
 class MatchRequestFormState {
@@ -124,7 +138,8 @@ class MatchRequestFormState {
 }
 
 class MatchRequestFormNotifier extends StateNotifier<MatchRequestFormState> {
-  MatchRequestFormNotifier(this._repository) : super(const MatchRequestFormState());
+  MatchRequestFormNotifier(this._repository)
+    : super(const MatchRequestFormState());
   final DonorRepository _repository;
 
   void setPriority(Priority p) => state = state.copyWith(priority: p);
@@ -147,22 +162,25 @@ class MatchRequestFormNotifier extends StateNotifier<MatchRequestFormState> {
 }
 
 final matchRequestFormProvider = StateNotifierProvider.autoDispose
-    .family<MatchRequestFormNotifier, MatchRequestFormState, String>((ref, donorId) {
-  return MatchRequestFormNotifier(ref.watch(donorRepositoryProvider));
-});
+    .family<MatchRequestFormNotifier, MatchRequestFormState, String>((
+      ref,
+      donorId,
+    ) {
+      return MatchRequestFormNotifier(ref.watch(donorRepositoryProvider));
+    });
 
 // --- Écran Demande reçue ---
-final incomingMatchRequestProvider =
-    FutureProvider.autoDispose.family<DonorMatchRequest, String>((ref, requestId) {
-  return ref.watch(donorRepositoryProvider).getIncomingRequest(requestId);
-});
+final incomingMatchRequestProvider = FutureProvider.autoDispose
+    .family<DonorMatchRequest, String>((ref, requestId) {
+      return ref.watch(donorRepositoryProvider).getIncomingRequest(requestId);
+    });
 
-final requesterInfoProvider =
-    FutureProvider.autoDispose.family<RequesterInfo, String>((ref, requesterId) {
-  return ref.watch(donorRepositoryProvider).resolveRequester(requesterId);
-});
+final requesterInfoProvider = FutureProvider.autoDispose
+    .family<RequesterInfo, String>((ref, requesterId) {
+      return ref.watch(donorRepositoryProvider).resolveRequester(requesterId);
+    });
 
-final nearestCenterProvider =
-    FutureProvider.autoDispose.family<BloodCenter?, String>((ref, commune) {
-  return ref.watch(centerRepositoryProvider).nearestTo(commune);
-});
+final nearestCenterProvider = FutureProvider.autoDispose
+    .family<BloodCenter?, String>((ref, commune) {
+      return ref.watch(centerRepositoryProvider).nearestTo(commune);
+    });

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
@@ -29,18 +30,22 @@ class MatchRequestReceivedScreen extends ConsumerStatefulWidget {
 
 enum _Action { accept, unavailable, decline }
 
-class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceivedScreen> {
+class _MatchRequestReceivedScreenState
+    extends ConsumerState<MatchRequestReceivedScreen> {
   _Action? _pendingAction;
 
   Future<void> _respond(_Action action) async {
     setState(() => _pendingAction = action);
     final status = switch (action) {
       _Action.accept => DonorMatchStatus.accepted,
-      _Action.unavailable => DonorMatchStatus.declined, // cf. note modèle ci-dessus
+      _Action.unavailable =>
+        DonorMatchStatus.declined, // cf. note modèle ci-dessus
       _Action.decline => DonorMatchStatus.declined,
     };
     try {
-      await ref.read(donorRepositoryProvider).respondToRequest(widget.requestId, status);
+      await ref
+          .read(donorRepositoryProvider)
+          .respondToRequest(widget.requestId, status);
       if (!mounted) return;
       final label = switch (action) {
         _Action.accept => 'Réponse envoyée : vous avez accepté.',
@@ -48,7 +53,7 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
         _Action.decline => 'Demande refusée.',
       };
       AppSnackbar.success(context, label);
-      Navigator.of(context).maybePop();
+      context.pop();
     } catch (e) {
       if (!mounted) return;
       AppSnackbar.error(context, "Échec de l'envoi. Réessayez.");
@@ -59,7 +64,9 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
 
   @override
   Widget build(BuildContext context) {
-    final requestAsync = ref.watch(incomingMatchRequestProvider(widget.requestId));
+    final requestAsync = ref.watch(
+      incomingMatchRequestProvider(widget.requestId),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -71,29 +78,43 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => _ErrorState(
           message: 'Impossible de charger la demande.',
-          onRetry: () => ref.invalidate(incomingMatchRequestProvider(widget.requestId)),
+          onRetry: () =>
+              ref.invalidate(incomingMatchRequestProvider(widget.requestId)),
         ),
         data: (request) {
-          final requesterAsync = ref.watch(requesterInfoProvider(request.requesterId));
+          final requesterAsync = ref.watch(
+            requesterInfoProvider(request.requesterId),
+          );
           final isBusy = _pendingAction != null;
 
           return requesterAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, _) => _ErrorState(
               message: "Impossible de charger l'émetteur de la demande.",
-              onRetry: () => ref.invalidate(requesterInfoProvider(request.requesterId)),
+              onRetry: () =>
+                  ref.invalidate(requesterInfoProvider(request.requesterId)),
             ),
             data: (requester) {
-              final distanceKm = CommuneDistances.forCommune(requester.commune, seedKey: request.id);
-              final nearestCenterAsync = ref.watch(nearestCenterProvider(requester.commune));
+              final distanceKm = CommuneDistances.forCommune(
+                requester.commune,
+                seedKey: request.id,
+              );
+              final nearestCenterAsync = ref.watch(
+                nearestCenterProvider(requester.commune),
+              );
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Demande reçue',
-                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+                    const Text(
+                      'Demande reçue',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -106,7 +127,10 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.ivoire,
                               borderRadius: BorderRadius.circular(8),
@@ -119,9 +143,17 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                                       ? 'DEMANDE SOUMISE PAR UN CENTRE DE SANTÉ'
                                       : 'DEMANDE SOUMISE PAR UN PARTICULIER',
                                   style: const TextStyle(
-                                      fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
-                                Text(requester.displayName, style: const TextStyle(fontWeight: FontWeight.w700)),
+                                Text(
+                                  requester.displayName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -130,15 +162,27 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                             requester.isHealthCenter
                                 ? 'Un centre de santé recherche un donneur ${request.bloodType.label} pour un patient.'
                                 : 'Une personne recherche un donneur ${request.bloodType.label}.',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                           const SizedBox(height: 12),
-                          _InfoRow(icon: Icons.location_on_outlined,
-                              text: '${requester.commune} · à environ ${distanceKm.toStringAsFixed(1)} km'),
-                          _InfoRow(icon: Icons.priority_high,
-                              text: 'Urgence ${request.priority.label.toLowerCase()}'),
-                          _InfoRow(icon: Icons.schedule,
-                              text: 'Reçue il y a ${DateTime.now().difference(request.notifiedAt).inMinutes} min'),
+                          _InfoRow(
+                            icon: Icons.location_on_outlined,
+                            text:
+                                '${requester.commune} · à environ ${distanceKm.toStringAsFixed(1)} km',
+                          ),
+                          _InfoRow(
+                            icon: Icons.priority_high,
+                            text:
+                                'Urgence ${request.priority.label.toLowerCase()}',
+                          ),
+                          _InfoRow(
+                            icon: Icons.schedule,
+                            text:
+                                'Reçue il y a ${DateTime.now().difference(request.notifiedAt).inMinutes} min',
+                          ),
                           if (request.message != null) ...[
                             const SizedBox(height: 12),
                             Container(
@@ -147,7 +191,12 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                                 color: AppColors.bleuLight,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text('« ${request.message} »', style: const TextStyle(fontStyle: FontStyle.italic)),
+                              child: Text(
+                                '« ${request.message} »',
+                                style: const TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
                             ),
                           ],
                         ],
@@ -181,7 +230,10 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                       error: (_, _) => const SizedBox.shrink(),
                       data: (center) {
                         if (center == null) return const SizedBox.shrink();
-                        final centerDistance = CommuneDistances.forCommune(center.commune, seedKey: center.id);
+                        final centerDistance = CommuneDistances.forCommune(
+                          center.commune,
+                          seedKey: center.id,
+                        );
                         return Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
@@ -191,16 +243,28 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.apartment_outlined, color: AppColors.rouge),
+                              const Icon(
+                                Icons.apartment_outlined,
+                                color: AppColors.rouge,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Centre le plus proche',
-                                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                                    Text('${center.name} · ${centerDistance.toStringAsFixed(1)} km',
-                                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                                    const Text(
+                                      'Centre le plus proche',
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${center.name} · ${centerDistance.toStringAsFixed(1)} km',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -214,8 +278,12 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: isBusy ? null : () => _respond(_Action.accept),
-                        icon: _pendingAction == _Action.accept ? const _ButtonSpinner() : const Icon(Icons.check),
+                        onPressed: isBusy
+                            ? null
+                            : () => _respond(_Action.accept),
+                        icon: _pendingAction == _Action.accept
+                            ? const _ButtonSpinner()
+                            : const Icon(Icons.check),
                         label: const Text('Accepter'),
                       ),
                     ),
@@ -223,7 +291,9 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed: isBusy ? null : () => _respond(_Action.unavailable),
+                        onPressed: isBusy
+                            ? null
+                            : () => _respond(_Action.unavailable),
                         child: _pendingAction == _Action.unavailable
                             ? const _ButtonSpinner(color: AppColors.encre)
                             : const Text('Je suis indisponible pour le moment'),
@@ -232,8 +302,12 @@ class _MatchRequestReceivedScreenState extends ConsumerState<MatchRequestReceive
                     const SizedBox(height: 10),
                     Center(
                       child: TextButton(
-                        onPressed: isBusy ? null : () => _respond(_Action.decline),
-                        style: TextButton.styleFrom(foregroundColor: AppColors.rouge),
+                        onPressed: isBusy
+                            ? null
+                            : () => _respond(_Action.decline),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.rouge,
+                        ),
                         child: _pendingAction == _Action.decline
                             ? const _ButtonSpinner(color: AppColors.rouge)
                             : const Text('Refuser'),
@@ -276,7 +350,11 @@ class _ButtonSpinner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: color));
+    return SizedBox(
+      width: 16,
+      height: 16,
+      child: CircularProgressIndicator(strokeWidth: 2, color: color),
+    );
   }
 }
 
@@ -293,7 +371,11 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 40, color: AppColors.indisponible),
+            const Icon(
+              Icons.error_outline,
+              size: 40,
+              color: AppColors.indisponible,
+            ),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),

@@ -1,18 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/presentation/widgets/blood_type_chip.dart';
 import '../../../../shared/presentation/widgets/person_badge.dart';
 import '../../../../shared/presentation/widgets/urgency_selector.dart';
 import '../providers/donor_providers.dart';
-import 'donor_results_screen.dart';
 
-const _villes = ['Abidjan', 'Bouaké', 'Yamoussoukro', 'San-Pédro', 'Daloa', 'Korhogo'];
+const _villes = [
+  'Abidjan',
+  'Bouaké',
+  'Yamoussoukro',
+  'San-Pédro',
+  'Daloa',
+  'Korhogo',
+];
 const _communesAbidjan = [
-  'Treichville', 'Marcory', 'Koumassi', 'Plateau', 'Cocody',
-  'Yopougon', 'Abobo', 'Adjamé', 'Port-Bouët', 'Attécoubé',
+  'Treichville',
+  'Marcory',
+  'Koumassi',
+  'Plateau',
+  'Cocody',
+  'Yopougon',
+  'Abobo',
+  'Adjamé',
+  'Port-Bouët',
+  'Attécoubé',
 ];
 
 /// Écran 2 — "Chercher un donneur". Formulaire pur, pas d'appel réseau :
@@ -36,11 +52,15 @@ class DonorSearchScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Chercher un donneur',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            const Text(
+              'Chercher un donneur',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+            ),
             const SizedBox(height: 6),
-            const Text('Trouvez des personnes susceptibles de donner leur sang.',
-                style: TextStyle(color: AppColors.textSecondary)),
+            const Text(
+              'Trouvez des personnes susceptibles de donner leur sang.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
             const SizedBox(height: 24),
 
             const _SectionLabel('GROUPE SANGUIN RECHERCHÉ'),
@@ -49,11 +69,13 @@ class DonorSearchScreen extends ConsumerWidget {
               spacing: 10,
               runSpacing: 10,
               children: BloodType.values
-                  .map((t) => BloodTypeChip(
-                        type: t,
-                        selected: filters.bloodType == t,
-                        onTap: () => notifier.setBloodType(t),
-                      ))
+                  .map(
+                    (t) => BloodTypeChip(
+                      type: t,
+                      selected: filters.bloodType == t,
+                      onTap: () => notifier.setBloodType(t),
+                    ),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 24),
@@ -64,19 +86,25 @@ class DonorSearchScreen extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: _villes
-                  .map((v) => ChoiceChip(
-                        label: Text(v),
-                        selected: v == filters.city,
-                        onSelected: (_) {}, // Abidjan uniquement pour le MVP démo
-                        selectedColor: AppColors.bleuLight,
-                        labelStyle: TextStyle(
-                          color: v == filters.city ? AppColors.bleu : AppColors.encre,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        side: BorderSide(
-                          color: v == filters.city ? AppColors.bleu : AppColors.ligne,
-                        ),
-                      ))
+                  .map(
+                    (v) => ChoiceChip(
+                      label: Text(v),
+                      selected: v == filters.city,
+                      onSelected: (_) {}, // Abidjan uniquement pour le MVP démo
+                      selectedColor: AppColors.bleuLight,
+                      labelStyle: TextStyle(
+                        color: v == filters.city
+                            ? AppColors.bleu
+                            : AppColors.encre,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      side: BorderSide(
+                        color: v == filters.city
+                            ? AppColors.bleu
+                            : AppColors.ligne,
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 24),
@@ -91,8 +119,13 @@ class DonorSearchScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            Text('${filters.communes.length} commune(s) sélectionnée(s)',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            Text(
+              '${filters.communes.length} commune(s) sélectionnée(s)',
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
+            ),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -110,7 +143,9 @@ class DonorSearchScreen extends ConsumerWidget {
                     color: selected ? AppColors.bleu : AppColors.encre,
                     fontWeight: FontWeight.w600,
                   ),
-                  side: BorderSide(color: selected ? AppColors.bleu : AppColors.ligne),
+                  side: BorderSide(
+                    color: selected ? AppColors.bleu : AppColors.ligne,
+                  ),
                 );
               }).toList(),
             ),
@@ -118,7 +153,10 @@ class DonorSearchScreen extends ConsumerWidget {
 
             const _SectionLabel('NIVEAU D\'URGENCE'),
             const SizedBox(height: 10),
-            UrgencySelector(value: filters.priority, onChanged: notifier.setPriority),
+            UrgencySelector(
+              value: filters.priority,
+              onChanged: notifier.setPriority,
+            ),
             const SizedBox(height: 20),
 
             Container(
@@ -147,11 +185,10 @@ class DonorSearchScreen extends ConsumerWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: filters.isValid
-                    ? () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => DonorResultsScreen(filters: filters),
-                          ),
-                        )
+                    ? () => context.push(
+                        AppRoutes.citizenDonorsResults,
+                        extra: filters,
+                      )
                     : null,
                 icon: const Icon(Icons.search),
                 label: const Text('Rechercher des donneurs'),

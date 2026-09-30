@@ -41,7 +41,11 @@ class PersonBadge extends StatelessWidget {
 
 /// Équivalent rouge pour le flux SANG (ex: "SANG · CENTRES AGRÉÉS").
 class BloodBadge extends StatelessWidget {
-  const BloodBadge({super.key, required this.label, this.icon = Icons.water_drop});
+  const BloodBadge({
+    super.key,
+    required this.label,
+    this.icon = Icons.water_drop,
+  });
 
   final String label;
   final IconData icon;

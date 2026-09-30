@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/citizen/presentation/providers/donor_providers.dart';
+import '../../shared/presentation/models/donor_search_candidate.dart';
 import '../constants/app_debug.dart';
 import '../constants/app_enums.dart';
 import '../widgets/placeholder_screen.dart';
@@ -13,7 +15,12 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_shell.dart';
 import '../../features/citizen/presentation/screens/blood_availability_screen.dart';
 import '../../features/citizen/presentation/screens/blood_center_detail_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_home_screen.dart';
 import '../../features/citizen/presentation/screens/citizen_shell.dart';
+import '../../features/citizen/presentation/screens/donor_results_screen.dart';
+import '../../features/citizen/presentation/screens/donor_search_screen.dart';
+import '../../features/citizen/presentation/screens/match_request_received_screen.dart';
+import '../../features/citizen/presentation/screens/match_request_screen.dart';
 import '../../features/citizen/presentation/screens/donate_screen.dart';
 import '../../features/citizen/presentation/screens/profile_screen.dart';
 import '../../features/health_center/presentation/screens/hc_shell.dart';
@@ -64,6 +71,10 @@ abstract final class AppRoutes {
   static const citizenDonors = '/citizen/donors';
   static const citizenBlood = '/citizen/blood';
   static const citizenBloodCenter = ':centerId';
+  static const citizenDonorsResults = 'results';
+  static const citizenDonorsRequest = 'request';
+  static const citizenIncoming = '/citizen/incoming';
+  static const citizenIncomingRequest = ':requestId';
   static const citizenDonate = '/citizen/donate';
   static const citizenProfile = '/citizen/profile';
 
@@ -168,8 +179,7 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.citizenHome,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Accueil'),
+                builder: (context, state) => const CitizenHomeScreen(),
               ),
             ],
           ),
@@ -177,8 +187,21 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.citizenDonors,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Donneurs'),
+                builder: (context, state) => const DonorSearchScreen(),
+                routes: [
+                  GoRoute(
+                    path: AppRoutes.citizenDonorsResults,
+                    builder: (context, state) => DonorResultsScreen(
+                      filters: state.extra! as DonorSearchFilters,
+                    ),
+                  ),
+                  GoRoute(
+                    path: AppRoutes.citizenDonorsRequest,
+                    builder: (context, state) => MatchRequestScreen(
+                      candidate: state.extra! as DonorSearchCandidate,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -215,6 +238,13 @@ GoRouter appRouter(Ref ref) {
             ],
           ),
         ],
+      ),
+
+      GoRoute(
+        path: AppRoutes.citizenIncoming,
+        builder: (context, state) => MatchRequestReceivedScreen(
+          requestId: state.pathParameters['requestId'] ?? '',
+        ),
       ),
 
       // ── Centre de santé ───────────────────────────────────────────────────

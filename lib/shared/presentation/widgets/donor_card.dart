@@ -30,7 +30,10 @@ class DonorCard extends StatelessWidget {
                   backgroundColor: AppColors.bleuLight,
                   child: Text(
                     candidate.bloodType.label,
-                    style: const TextStyle(color: AppColors.bleu, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      color: AppColors.bleu,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -38,15 +41,24 @@ class DonorCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Donneur potentiel', style: TextStyle(fontWeight: FontWeight.w700)),
+                      const Text(
+                        'Donneur potentiel',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: AppColors.textSecondary,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '${candidate.commune} · ${candidate.distanceKm.toStringAsFixed(1)} km',
-                            style: const TextStyle(color: AppColors.textSecondary),
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ],
                       ),
@@ -57,7 +69,10 @@ class DonorCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (candidate.matchStatus == DonorMatchStatus.pending) ...[
-              const Text('Demande envoyée', style: TextStyle(color: AppColors.textSecondary)),
+              const Text(
+                'Demande envoyée',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
               const SizedBox(height: 6),
               const MatchStatusPill(status: DonorMatchStatus.pending),
             ] else
