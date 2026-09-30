@@ -27,4 +27,5 @@ class AppColors {
   static const Color gris  = Color(0xFF6B7280);
   static const Color slate = Color(0xFF374151);
   static const Color ligne = Color(0xFFE7E0D9);
+  static const textSecondary = Color(0xFF57534E); // Texte secondaire
 }
