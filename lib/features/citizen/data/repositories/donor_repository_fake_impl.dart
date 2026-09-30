@@ -1,9 +1,9 @@
-import '../../../core/constants/app_enums.dart';
-import '../../domain/entities/donor_match_request.dart';
-import '../../domain/repositories/donor_repository.dart';
-import '../../presentation/models/donor_search_candidate.dart';
-import '../../presentation/models/requester_info.dart';
-import '../mock/mock_data.dart';
+import '../../../../core/constants/app_enums.dart';
+import '../../../../shared/domain/entities/donor_match_request.dart';
+import '../../domain/repositories/donor_search_repository.dart';
+import '../../../../shared/presentation/models/donor_search_candidate.dart';
+import '../../../../shared/presentation/models/requester_info.dart';
+import '../mock/donor_mock_data.dart';
 
 /// Implémentation mock du DonorRepository, alignée sur DonorMatchRequest.
 /// `failNextSearch` / `failNextSend` forcent un cas d'erreur depuis les

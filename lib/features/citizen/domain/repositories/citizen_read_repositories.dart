@@ -1,6 +1,6 @@
-import '../entities/app_user.dart';
-import '../entities/blood_center.dart';
-import '../entities/campaign.dart';
+import '../../../../shared/domain/entities/app_user.dart';
+import '../../../../shared/domain/entities/blood_center.dart';
+import '../../../../shared/domain/entities/campaign.dart';
 
 abstract class CenterRepository {
   Future<List<BloodCenter>> nearby();

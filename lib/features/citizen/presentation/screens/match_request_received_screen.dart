@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
-import '../../../../shared/data/mock/commune_distances.dart';
+import '../../data/mock/commune_distances.dart';
 import '../../../../shared/presentation/models/enum_labels.dart';
 import '../../../../shared/presentation/widgets/app_snackbar.dart';
 import '../../../../shared/presentation/widgets/person_badge.dart';

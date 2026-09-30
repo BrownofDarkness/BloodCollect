@@ -1,12 +1,8 @@
 import 'dart:math';
 
-import '../../../core/constants/app_enums.dart';
-import '../../domain/entities/app_user.dart';
-import '../../domain/entities/blood_center.dart';
-import '../../domain/entities/campaign.dart';
-import '../../domain/entities/donor_match_request.dart';
-import '../../domain/entities/geo_location.dart';
-import '../../presentation/models/donor_search_candidate.dart';
+import '../../../../core/constants/app_enums.dart';
+import '../../../../shared/domain/entities/entities.dart';
+import '../../../../shared/presentation/models/donor_search_candidate.dart';
 import 'commune_distances.dart';
 
 final _now = DateTime.now();

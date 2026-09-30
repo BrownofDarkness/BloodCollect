@@ -2,14 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/constants/app_enums.dart';
-import '../../../../shared/data/repositories/fake_citizen_repositories.dart';
-import '../../../../shared/data/repositories/fake_donor_repository.dart';
+import '../../data/repositories/citizen_repositories_fake_impl.dart';
+import '../../data/repositories/donor_repository_fake_impl.dart';
 import '../../../../shared/domain/entities/app_user.dart';
 import '../../../../shared/domain/entities/blood_center.dart';
 import '../../../../shared/domain/entities/campaign.dart';
 import '../../../../shared/domain/entities/donor_match_request.dart';
-import '../../../../shared/domain/repositories/citizen_repositories.dart';
-import '../../../../shared/domain/repositories/donor_repository.dart';
+import '../../domain/repositories/citizen_read_repositories.dart';
+import '../../domain/repositories/donor_search_repository.dart';
 import '../../../../shared/presentation/models/donor_search_candidate.dart';
 import '../../../../shared/presentation/models/requester_info.dart';
 

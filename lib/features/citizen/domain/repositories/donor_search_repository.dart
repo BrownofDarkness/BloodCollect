@@ -1,7 +1,7 @@
-import '../../../core/constants/app_enums.dart';
-import '../../presentation/models/donor_search_candidate.dart';
-import '../../presentation/models/requester_info.dart';
-import '../entities/donor_match_request.dart';
+import '../../../../core/constants/app_enums.dart';
+import '../../../../shared/presentation/models/donor_search_candidate.dart';
+import '../../../../shared/presentation/models/requester_info.dart';
+import '../../../../shared/domain/entities/donor_match_request.dart';
 
 /// Contrat d'accès aux donneurs / mises en relation, aligné sur la
 /// collection réelle `donor_match_requests` (cf. donor_match_request.dart).
