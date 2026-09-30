@@ -1,0 +1,160 @@
+rules_version = '2';
+
+// BloodCollect — Spec Modèles v1.0 + page Carte des références.
+// La console Firebase contourne ces règles : la vérification manuelle
+// des centres (pending -> verified) reste toujours possible.
+// Le rôle admin est lu dans users/{uid}.role (MVP ; custom claims plus tard).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid))
+             .data.role == 'admin';
+    }
+
+    function myCenter(collection, centerId) {
+      return signedIn()
+        && get(/databases/$(database)/documents/$(collection)/$(centerId))
+             .data.userId == request.auth.uid;
+    }
+
+    // ── users : chacun son profil, rôle figé après création ──
+    match /users/{uid} {
+      allow get: if owner(uid) || isAdmin();
+      allow create: if owner(uid);
+      allow update: if (owner(uid) || isAdmin())
+        && request.resource.data.role == resource.data.role;
+      allow delete: if false;
+      allow list: if false;
+    }
+
+    // ── health_centers / blood_centers : fiche publique, écriture owner,
+    // verificationStatus verrouillé côté app (console/admin uniquement) ──
+    match /health_centers/{centerId} {
+      allow get, list: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.verificationStatus == 'pending';
+      allow update: if owner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.verificationStatus
+             == resource.data.verificationStatus;
+      allow delete: if false;
+    }
+
+    match /blood_centers/{centerId} {
+      allow get, list: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.verificationStatus == 'pending';
+      allow update: if owner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.verificationStatus
+             == resource.data.verificationStatus;
+      allow delete: if false;
+    }
+
+    // ── blood_stock_lots : lecture connectée, écriture centre propriétaire ──
+    match /blood_stock_lots/{lotId} {
+      allow get, list: if signedIn();
+      allow create: if signedIn()
+        && myCenter('blood_centers', request.resource.data.bloodCenterId);
+      allow update, delete: if
+        myCenter('blood_centers', resource.data.bloodCenterId)
+        && request.resource.data.bloodCenterId
+             == resource.data.bloodCenterId;
+    }
+
+    // ── blood_requests : créée par le centre demandeur,
+    // traitée par lui ou le centre de transfusion ciblé ──
+    match /blood_requests/{requestId} {
+      allow get, list: if signedIn();
+      allow create: if signedIn()
+        && myCenter('health_centers', request.resource.data.healthCenterId);
+      allow update: if
+        myCenter('health_centers', resource.data.healthCenterId)
+        || (resource.data.keys().hasAll(['matchedBloodCenterId'])
+          && resource.data.matchedBloodCenterId != null
+          && myCenter('blood_centers', resource.data.matchedBloodCenterId));
+      allow delete: if false;
+    }
+
+    // ── donor_match_requests : initiateur + donneur cible ──
+    match /donor_match_requests/{matchId} {
+      allow get, list: if signedIn()
+        && (resource.data.requesterId == request.auth.uid
+          || resource.data.donorId == request.auth.uid
+          || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.requesterId == request.auth.uid;
+      // Le donneur ne change que le statut de sa mobilisation.
+      allow update: if resource.data.donorId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'respondedAt']);
+      allow delete: if false;
+    }
+
+    // ── campaigns : lecture connectée, écriture centre organisateur ──
+    match /campaigns/{campaignId} {
+      allow get, list: if signedIn();
+      allow create: if signedIn()
+        && myCenter('blood_centers', request.resource.data.bloodCenterId);
+      allow update, delete: if
+        myCenter('blood_centers', resource.data.bloodCenterId)
+        && request.resource.data.bloodCenterId
+             == resource.data.bloodCenterId;
+    }
+
+    // ── campaign_registrations : rattachée à sa campagne + donneur ──
+    match /campaign_registrations/{registrationId} {
+      allow get, list: if signedIn()
+        && (resource.data.donorId == request.auth.uid || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.donorId == request.auth.uid;
+      allow update: if resource.data.donorId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'scheduledTime']);
+      allow delete: if false;
+    }
+
+    // ── donations : créées par un centre, lues par donneur/centre ──
+    match /donations/{donationId} {
+      allow get, list: if signedIn()
+        && (resource.data.donorId == request.auth.uid || isAdmin());
+      allow create: if signedIn();
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // ── validation_requests : dépôt owner, instruction admin ──
+    match /validation_requests/{validationId} {
+      allow get: if owner(resource.data.userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // ── notifications : destinataire seul (+ admin) ──
+    match /notifications/{notificationId} {
+      allow get, list: if signedIn()
+        && (resource.data.recipientId == request.auth.uid || isAdmin());
+      allow create: if false; // Cloud Functions (Blaze) uniquement
+      allow update: if resource.data.recipientId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['isRead', 'readAt']);
+      allow delete: if false;
+    }
+  }
+}

@@ -1,14 +1,20 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../config/backend_config.dart';
 import '../constants/app_enums.dart';
 import '../widgets/placeholder_screen.dart';
+import '../../features/auth/domain/entities/auth_user.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/pending_verification_screen.dart';
+import '../../features/auth/presentation/screens/profile_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/role_choice_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_shell.dart';
 import '../../features/citizen/presentation/screens/citizen_shell.dart';
 import '../../features/health_center/presentation/screens/hc_shell.dart';
@@ -17,8 +23,12 @@ part 'app_router.g.dart';
 
 abstract final class AppRoutes {
   static const splash   = '/';
+  static const welcome  = '/welcome';
   static const login    = '/login';
+  static const forgotPassword = '/forgot-password';
+  static const registerChoice = '/register';
   static const register = '/register/:role';
+  static const pendingVerification = '/pending-verification';
 
   static const citizenHome    = '/citizen/home';
   static const citizenDonors  = '/citizen/donors';
@@ -45,12 +55,16 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
 
   @override
   Future<void> build() async {
-    ref.listen<AsyncValue<User?>>(
+    ref.listen<AsyncValue<AuthUser?>>(
       authStateProvider,
       (_, _) => _routerListener?.call(),
     );
     ref.listen<AsyncValue<UserRole?>>(
       currentUserRoleProvider,
+      (_, _) => _routerListener?.call(),
+    );
+    ref.listen<AsyncValue<VerificationStatus?>>(
+      centerVerificationStatusProvider,
       (_, _) => _routerListener?.call(),
     );
   }
@@ -62,24 +76,52 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
   void removeListener(VoidCallback listener) => _routerListener = null;
 
   String? redirect(BuildContext context, GoRouterState state) {
+    // Mode simulation : navigation libre pour tester le flow sans Firebase.
+    if (BackendConfig.simulate) return null;
+
     final authAsync = ref.read(authStateProvider);
     final roleAsync = ref.read(currentUserRoleProvider);
+    final verificationAsync = ref.read(centerVerificationStatusProvider);
 
-    if (authAsync.isLoading || roleAsync.isLoading) return null;
+    if (authAsync.isLoading ||
+        roleAsync.isLoading ||
+        verificationAsync.isLoading) {
+      return null;
+    }
 
     final user = authAsync.asData?.value;
     final role = roleAsync.asData?.value;
     final loc  = state.matchedLocation;
 
-    final isPublic = loc == AppRoutes.splash ||
+    // Le splash est auto-géré (min-display + gating) : il sort tout seul.
+    if (loc == AppRoutes.splash) return null;
+
+    final isPublic = loc == AppRoutes.welcome ||
         loc == AppRoutes.login ||
+        loc == AppRoutes.forgotPassword ||
         loc.startsWith('/register');
 
     if (user == null) {
       return isPublic ? null : AppRoutes.login;
     }
 
-    if (isPublic) return _homeForRole(role);
+    // Centre non vérifié : cantonné à l'écran d'attente.
+    final isCenter =
+        role == UserRole.healthCenter || role == UserRole.bloodCenter;
+    final verified =
+        verificationAsync.asData?.value == VerificationStatus.verified;
+    if (isCenter && !verified) {
+      return loc == AppRoutes.pendingVerification
+          ? null
+          : AppRoutes.pendingVerification;
+    }
+
+    // Rôle encore inconnu (écritures d'inscription en cours, lecture lente)
+    // : on ne yank nulle part, les écrans gèrent leur propre sortie.
+    if (isPublic) {
+      if (role == null) return null;
+      return _homeForRole(role);
+    }
 
     if (role == UserRole.citizen && !loc.startsWith('/citizen')) {
       return AppRoutes.citizenHome;
@@ -94,12 +136,11 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
     return null;
   }
 
-  String _homeForRole(UserRole? role) => switch (role) {
+  String _homeForRole(UserRole role) => switch (role) {
     UserRole.citizen      => AppRoutes.citizenHome,
     UserRole.healthCenter => AppRoutes.hcHome,
     UserRole.bloodCenter  => AppRoutes.bcHome,
     UserRole.admin        => AppRoutes.citizenHome,
-    null                  => AppRoutes.login,
   };
 }
 
@@ -117,8 +158,24 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
+        path: AppRoutes.welcome,
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.pendingVerification,
+        builder: (context, state) => const PendingVerificationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.registerChoice,
+        builder: (context, state) => const RoleChoiceScreen(),
       ),
       GoRoute(
         path: '/register/:role',
@@ -164,7 +221,7 @@ GoRouter appRouter(Ref ref) {
             GoRoute(
               path: AppRoutes.citizenProfile,
               builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Profil'),
+                  const ProfileScreen(title: 'Profil'),
             ),
           ]),
         ],
@@ -207,7 +264,7 @@ GoRouter appRouter(Ref ref) {
             GoRoute(
               path: AppRoutes.hcProfile,
               builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Profil'),
+                  const ProfileScreen(title: 'Profil'),
             ),
           ]),
         ],
@@ -250,7 +307,7 @@ GoRouter appRouter(Ref ref) {
             GoRoute(
               path: AppRoutes.bcProfile,
               builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Profil'),
+                  const ProfileScreen(title: 'Profil'),
             ),
           ]),
         ],
