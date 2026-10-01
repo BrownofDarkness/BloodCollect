@@ -1,17 +1,21 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/citizen/presentation/providers/donor_providers.dart';
 import '../../shared/presentation/models/donor_search_candidate.dart';
-import '../constants/app_debug.dart';
+import '../config/backend_config.dart';
 import '../constants/app_enums.dart';
 import '../widgets/placeholder_screen.dart';
+import '../../features/auth/domain/entities/auth_user.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/pending_verification_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/role_choice_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_shell.dart';
 import '../../features/citizen/presentation/screens/blood_availability_screen.dart';
 import '../../features/citizen/presentation/screens/blood_center_detail_screen.dart';
@@ -22,7 +26,7 @@ import '../../features/citizen/presentation/screens/donor_search_screen.dart';
 import '../../features/citizen/presentation/screens/match_request_received_screen.dart';
 import '../../features/citizen/presentation/screens/match_request_screen.dart';
 import '../../features/citizen/presentation/screens/donate_screen.dart';
-import '../../features/citizen/presentation/screens/profile_screen.dart';
+import '../../features/citizen/presentation/screens/profile_screen.dart' as citizen_profile;
 import '../../features/health_center/presentation/screens/hc_shell.dart';
 
 part 'app_router.g.dart';
@@ -36,7 +40,9 @@ part 'app_router.g.dart';
 String? redirectForRole(String matchedLocation, String? roleValue) {
   final isPublicRoute =
       matchedLocation == AppRoutes.splash ||
+      matchedLocation == AppRoutes.welcome ||
       matchedLocation == AppRoutes.login ||
+      matchedLocation == AppRoutes.forgotPassword ||
       matchedLocation.startsWith('/register');
 
   final role = UserRole.fromString(roleValue);
@@ -63,9 +69,13 @@ String homeForRole(UserRole? role) => switch (role) {
 };
 
 abstract final class AppRoutes {
-  static const splash = '/';
-  static const login = '/login';
+  static const splash   = '/';
+  static const welcome  = '/welcome';
+  static const login    = '/login';
+  static const forgotPassword = '/forgot-password';
+  static const registerChoice = '/register';
   static const register = '/register/:role';
+  static const pendingVerification = '/pending-verification';
 
   static const citizenHome = '/citizen/home';
   static const citizenDonors = '/citizen/donors';
@@ -97,12 +107,16 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
 
   @override
   Future<void> build() async {
-    ref.listen<AsyncValue<User?>>(
+    ref.listen<AsyncValue<AuthUser?>>(
       authStateProvider,
       (_, _) => _routerListener?.call(),
     );
     ref.listen<AsyncValue<UserRole?>>(
       currentUserRoleProvider,
+      (_, _) => _routerListener?.call(),
+    );
+    ref.listen<AsyncValue<VerificationStatus?>>(
+      centerVerificationStatusProvider,
       (_, _) => _routerListener?.call(),
     );
   }
@@ -114,37 +128,63 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
   void removeListener(VoidCallback listener) => _routerListener = null;
 
   String? redirect(BuildContext context, GoRouterState state) {
-    // Contournement de développement : court-circuite l'authentification,
-    // que Firebase ne résout jamais sans session. Le rôle est celui demandé au
-    // lancement et l'absence de session n'est pas bloquante ; on applique donc
-    // la même logique de rôle que le cas nominal, qui laisse naviguer dans la
-    // section au lieu de renvoyer vers l'accueil en boucle.
-    if (AppDebug.skipAuth) {
-      return _redirectForRole(state, AppDebug.startRole);
-    }
-
-    final loc = state.matchedLocation;
-    final isPublicRoute =
-        loc == AppRoutes.splash ||
-        loc == AppRoutes.login ||
-        loc.startsWith('/register');
+    // Mode simulation : navigation libre pour tester le flow sans Firebase.
+    if (BackendConfig.simulate) return null;
 
     final authAsync = ref.read(authStateProvider);
     final roleAsync = ref.read(currentUserRoleProvider);
-    if (authAsync.isLoading || roleAsync.isLoading) return null;
+    final verificationAsync = ref.read(centerVerificationStatusProvider);
+
+    if (authAsync.isLoading ||
+        roleAsync.isLoading ||
+        verificationAsync.isLoading) {
+      return null;
+    }
 
     final user = authAsync.asData?.value;
     final role = roleAsync.asData?.value;
+    final loc = state.matchedLocation;
+
+    // Le splash est auto-géré (min-display + gating) : il sort tout seul.
+    if (loc == AppRoutes.splash) return null;
+
+    final isPublic =
+        loc == AppRoutes.welcome ||
+        loc == AppRoutes.login ||
+        loc == AppRoutes.forgotPassword ||
+        loc.startsWith('/register');
 
     if (user == null) {
-      return isPublicRoute ? null : AppRoutes.login;
+      return isPublic ? null : AppRoutes.login;
     }
 
-    return _redirectForRole(state, role?.firestoreValue);
+    // Centre non vérifié : cantonné à l'écran d'attente.
+    final isCenter =
+        role == UserRole.healthCenter || role == UserRole.bloodCenter;
+    final verified =
+        verificationAsync.asData?.value == VerificationStatus.verified;
+    if (isCenter && !verified) {
+      return loc == AppRoutes.pendingVerification
+          ? null
+          : AppRoutes.pendingVerification;
+    }
+
+    // Rôle encore inconnu (écritures d'inscription en cours, lecture lente)
+    // : on ne yank nulle part, les écrans gèrent leur propre sortie.
+    if (isPublic) {
+      if (role == null) return null;
+      return _homeForRole(role);
+    }
+
+    return redirectForRole(loc, role?.firestoreValue);
   }
 
-  String? _redirectForRole(GoRouterState state, String? roleValue) =>
-      redirectForRole(state.matchedLocation, roleValue);
+  String _homeForRole(UserRole role) => switch (role) {
+    UserRole.citizen => AppRoutes.citizenHome,
+    UserRole.healthCenter => AppRoutes.hcHome,
+    UserRole.bloodCenter => AppRoutes.bcHome,
+    UserRole.admin => AppRoutes.citizenHome,
+  };
 }
 
 @Riverpod(keepAlive: true)
@@ -161,8 +201,24 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
+        path: AppRoutes.welcome,
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.pendingVerification,
+        builder: (context, state) => const PendingVerificationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.registerChoice,
+        builder: (context, state) => const RoleChoiceScreen(),
       ),
       GoRoute(
         path: '/register/:role',
@@ -233,7 +289,7 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.citizenProfile,
-                builder: (context, state) => const ProfileScreen(),
+                builder: (context, state) => const citizen_profile.ProfileScreen(),
               ),
             ],
           ),

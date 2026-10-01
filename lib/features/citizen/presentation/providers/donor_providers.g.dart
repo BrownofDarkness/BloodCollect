@@ -304,7 +304,7 @@ final class DonorSearchFiltersNotifierProvider
 }
 
 String _$donorSearchFiltersNotifierHash() =>
-    r'dba3fc5edcfc34c1928eeaab0a81f53476cb2336';
+    r'7c0ef7bd91feae4c06d1bdd0b147497feb816e56';
 
 abstract class _$DonorSearchFiltersNotifier
     extends $Notifier<DonorSearchFilters> {
