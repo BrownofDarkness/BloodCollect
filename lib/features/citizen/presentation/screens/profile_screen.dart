@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
+import '../../../../shared/presentation/widgets/app_snackbar.dart';
 import '../../domain/usecases/get_citizen_profile_usecase.dart';
 import '../providers/citizen_providers.dart';
+import '../providers/donor_providers.dart';
 import '../widgets/citizen_scaffold_parts.dart';
 import '../widgets/profile_widgets.dart';
 
@@ -45,14 +47,14 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _ProfileBody extends StatelessWidget {
+class _ProfileBody extends ConsumerWidget {
   const _ProfileBody({required this.profile, required this.onSignOut});
 
   final CitizenProfile profile;
   final VoidCallback onSignOut;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final user = profile.user;
     final city = user.city;
     final commune = user.commune;
@@ -117,7 +119,24 @@ class _ProfileBody extends StatelessWidget {
               title: 'Mes mises en relation',
               subtitle: 'Demandes envoyées et reçues',
               count: profile.matchCount,
-              onTap: () => _notAvailable(context, 'Mes mises en relation'),
+              // La route « demandes reçues » attend un identifiant : on ouvre
+              // donc la demande en attente la plus recente. Sans demande, on
+              // previent plutot que d'ouvrir un ecran vide.
+              onTap: () async {
+                final pending = await ref
+                    .read(pendingIncomingRequestProvider.future);
+                if (!context.mounted) return;
+                if (pending == null) {
+                  AppSnackbar.info(
+                    context,
+                    'Aucune demande reçue pour le moment.',
+                  );
+                  return;
+                }
+                context.go(
+                  '${AppRoutes.citizenIncoming}/${pending.id}',
+                );
+              },
             ),
           ],
         ),

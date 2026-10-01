@@ -3,7 +3,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../domain/usecases/get_blood_availability_usecase.dart';
-import 'citizen_providers.dart';
 
 part 'citizen_filters_providers.g.dart';
 
@@ -16,11 +15,11 @@ class BloodAvailabilityFilterNotifier
     extends _$BloodAvailabilityFilterNotifier {
   @override
   Future<BloodAvailabilityFilter> build() async {
-    final citizen = await ref.watch(donorRepositoryProvider).currentCitizen();
-    return BloodAvailabilityFilter(
-      bloodType: BloodType.oPos,
-      city: citizen.city,
-    );
+    // Par defaut les deux selecteurs montrent « Tout » : ville et commune
+    // valent null, ce qui est la seule facon de connaitre la liste des
+    // communes. Les amorcer sur la ville du profil restreindait la liste et
+    // cachait les autres villes derriere une selection invisible.
+    return const BloodAvailabilityFilter(bloodType: BloodType.oPos);
   }
 
   /// Recliquer sur le groupe déjà sélectionné le désactive.

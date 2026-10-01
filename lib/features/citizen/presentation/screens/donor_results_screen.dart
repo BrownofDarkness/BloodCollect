@@ -158,7 +158,10 @@ class DonorResultsScreen extends ConsumerWidget {
                       candidate: candidate,
                       onContact: () async {
                         final sent = await context.push<bool>(
-                          AppRoutes.citizenDonorsRequest,
+                          // Chemin absolu : le push relatif echoue
+                          // silencieusement dans une branche de shell.
+                          '${AppRoutes.citizenDonors}/'
+                          '${AppRoutes.citizenDonorsRequest}',
                           extra: candidate,
                         );
                         if (sent == true) {

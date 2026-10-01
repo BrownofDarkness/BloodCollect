@@ -32,6 +32,15 @@ const _communesAbidjan = [
   'Attécoubé',
 ];
 
+/// Les listes de communes ne couvrent qu'Abidjan aujourd'hui. Les autres
+/// villes restent sélectionnables : changer de ville vide la sélection et
+/// l'écran explique alors qu'aucune commune n'est disponible.
+const _communesByCity = <String, List<String>>{
+  'Abidjan': _communesAbidjan,
+};
+
+List<String> communesFor(String city) => _communesByCity[city] ?? const [];
+
 /// Écran 2 — "Chercher un donneur". Formulaire pur, pas d'appel réseau :
 /// la recherche ne se déclenche qu'à la soumission (écran suivant).
 class DonorSearchScreen extends ConsumerWidget {
@@ -41,6 +50,7 @@ class DonorSearchScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filters = ref.watch(donorSearchFiltersProvider);
     final notifier = ref.read(donorSearchFiltersProvider.notifier);
+    final communes = communesFor(filters.city);
 
     return Scaffold(
       appBar: AppBar(
@@ -94,10 +104,7 @@ class DonorSearchScreen extends ConsumerWidget {
                     (v) => _CommuneChip(
                       label: v,
                       selected: v == filters.city,
-                      // Les communes listées ne couvrent qu'Abidjan : changer
-                      // de ville sans liste associée renverrait une recherche
-                      // vide sans explication.
-                      onTap: () {},
+                      onTap: () => notifier.setCity(v),
                     ),
                   )
                   .toList(),
@@ -105,11 +112,15 @@ class DonorSearchScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const _SectionLabel('COMMUNES D\'ABIDJAN'),
+                // Expanded : le libelle se comprime au lieu de deborder sur
+                // les ecrans etroits, le bouton garde sa place.
+                Expanded(child: _SectionLabel('COMMUNES DE ${filters.city.toUpperCase()}')),
+                const SizedBox(width: 8),
                 TextButton(
-                  onPressed: () => notifier.selectAllCommunes(_communesAbidjan),
+                  onPressed: communes.isEmpty
+                      ? null
+                      : () => notifier.selectAllCommunes(communes),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.bleu,
                     padding: EdgeInsets.zero,
@@ -137,7 +148,7 @@ class DonorSearchScreen extends ConsumerWidget {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _communesAbidjan.map((c) {
+              children: communes.map((c) {
                 final selected = filters.communes.contains(c);
                 return _CommuneChip(
                   label: c,
@@ -146,6 +157,18 @@ class DonorSearchScreen extends ConsumerWidget {
                 );
               }).toList(),
             ),
+            // Une ville sans liste de communes ne doit pas laisser croire a
+            // une recherche possible : on le dit plutot que d'afficher un
+            // bouton inactif sans raison.
+            if (communes.isEmpty)
+              Text(
+                'Aucune commune disponible pour ${filters.city} '
+                'pour le moment.',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
             const SizedBox(height: 24),
 
             const _SectionLabel('NIVEAU D\'URGENCE'),
@@ -201,9 +224,12 @@ class DonorSearchScreen extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
+                // Chemin absolu : un push relatif ne resout pas dans une
+                // branche de StatefulShellRoute et ne naviguait nulle part.
                 onPressed: filters.isValid
                     ? () => context.push(
-                        AppRoutes.citizenDonorsResults,
+                        '${AppRoutes.citizenDonors}/'
+                        '${AppRoutes.citizenDonorsResults}',
                         extra: filters,
                       )
                     : null,

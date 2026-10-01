@@ -100,7 +100,9 @@ class DonorSearchFiltersNotifier extends _$DonorSearchFiltersNotifier {
   void setPriority(Priority priority) =>
       state = state.copyWith(priority: priority);
 
-  void setCity(String city) => state = state.copyWith(city: city);
+  /// Changer de ville invalide les communes choisies : elles appartiennent a
+  /// l'ancienne ville, et les conserver produirait une recherche incoherente.
+  void setCity(String city) => state = state.copyWith(city: city, communes: const {});
 
   void toggleCommune(String commune) {
     final updated = {...state.communes};
