@@ -3,15 +3,14 @@ import 'package:blood_collect/features/citizen/domain/usecases/campaign_registra
 import 'package:blood_collect/features/citizen/domain/usecases/get_blood_availability_usecase.dart';
 import 'package:blood_collect/features/citizen/domain/usecases/get_citizen_profile_usecase.dart';
 import 'package:blood_collect/features/citizen/domain/usecases/get_donation_dashboard_usecase.dart';
-import 'package:blood_collect/features/citizen/data/datasources/citizen_mock_datasource.dart';
-import 'package:blood_collect/features/citizen/data/repositories/blood_center_repository_impl.dart';
-import 'package:blood_collect/features/citizen/data/repositories/campaign_repository_impl.dart';
-import 'package:blood_collect/features/citizen/data/repositories/donor_repository_impl.dart';
-import 'package:blood_collect/features/citizen/data/repositories/citizen_repositories_fake_impl.dart';
-import 'package:blood_collect/features/citizen/data/repositories/donor_repository_fake_impl.dart';
-import 'package:blood_collect/features/citizen/domain/repositories/donor_search_repository.dart';
-import 'package:blood_collect/shared/domain/entities/entities.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../fixtures/citizen_mock_datasource.dart';
+import '../../fixtures/citizen_records_fixture.dart';
+import '../../fixtures/citizen_repository_fakes.dart';
+import 'package:blood_collect/shared/presentation/models/requester_info.dart';
+
+import '../../fixtures/fake_donor_search_repository.dart';
 
 /// Vérifie que les deux moitiés du module citoyen — celle qui montre le sang et
 /// celle qui mobilise les personnes — lisent la même source de données.
@@ -22,24 +21,35 @@ import 'package:flutter_test/flutter_test.dart';
 /// distance.
 void main() {
   late CitizenMockDataSource source;
-  late FakeDonorRepository donorSearch;
+
+  late FakeDonorSearchRepository donorSearch;
+
   late GetDonationDashboardUseCase dashboard;
   late GetBloodAvailabilityUseCase availability;
   late GetCitizenProfileUseCase profile;
 
   setUp(() {
     source = CitizenMockDataSource();
-    donorSearch = FakeDonorRepository();
+    donorSearch = FakeDonorSearchRepository()
+      ..candidates.addAll(mockDonorsFixture)
+      ..seedRequester(
+        'u_hc_treichville',
+        const RequesterInfo(
+          role: UserRole.healthCenter,
+          displayName: 'CSCom de Treichville',
+          commune: 'Treichville',
+        ),
+      );
     dashboard = GetDonationDashboardUseCase(
-      centers: BloodCenterRepositoryImpl(source),
-      campaigns: CampaignRepositoryImpl(source),
-      donors: DonorRepositoryImpl(source),
+      centers: InMemoryBloodCenterRepository(source),
+      campaigns: InMemoryCampaignRepository(source),
+      donors: InMemoryDonorRepository(source),
     );
     availability = GetBloodAvailabilityUseCase(
-      centers: BloodCenterRepositoryImpl(source),
-      donors: DonorRepositoryImpl(source),
+      centers: InMemoryBloodCenterRepository(source),
+      donors: InMemoryDonorRepository(source),
     );
-    profile = GetCitizenProfileUseCase(donors: DonorRepositoryImpl(source));
+    profile = GetCitizenProfileUseCase(donors: InMemoryDonorRepository(source));
   });
 
   group('parcours sang', () {
@@ -87,9 +97,7 @@ void main() {
       'les collectes à venir sont celles auxquelles on peut s\'inscrire',
       () async {
         final listed = (await dashboard()).campaigns;
-        final upcoming = await CampaignRepositoryImpl(
-          source,
-        ).upcomingCampaigns();
+        final upcoming = await InMemoryCampaignRepository(source).upcomingCampaigns();
 
         expect(listed.map((e) => e.campaign.id), upcoming.map((c) => c.id));
       },
@@ -138,6 +146,7 @@ void main() {
         final before = (await profile()).matchCount;
         await donorSearch.sendMatchRequest(
           donorId: found.first.donorId,
+          bloodType: found.first.bloodType,
           priority: Priority.elevated,
           message: 'Merci de vous présenter au centre le plus proche.',
           shareContact: true,
@@ -157,6 +166,7 @@ void main() {
       () async {
         final sent = await donorSearch.sendMatchRequest(
           donorId: 'donor_1',
+          bloodType: BloodType.oPos,
           priority: Priority.elevated,
           shareContact: true,
         );
@@ -172,6 +182,7 @@ void main() {
     test('refuser une demande ne transmet pas les coordonnées', () async {
       final sent = await donorSearch.sendMatchRequest(
         donorId: 'donor_1',
+        bloodType: BloodType.oPos,
         priority: Priority.normal,
         shareContact: false,
       );
@@ -202,8 +213,8 @@ void main() {
       final before = (await profile()).upcomingCollectCount;
 
       final useCase = JoinCampaignUseCase(
-        campaigns: CampaignRepositoryImpl(source),
-        donors: DonorRepositoryImpl(source),
+        campaigns: InMemoryCampaignRepository(source),
+        donors: InMemoryDonorRepository(source),
       );
       await useCase(target.campaign.id);
       expect((await profile()).upcomingCollectCount, before + 1);
@@ -211,7 +222,7 @@ void main() {
       final registration = source.registrations.lastWhere(
         (r) => r.campaignId == target.campaign.id,
       );
-      await CancelRegistrationUseCase(donors: DonorRepositoryImpl(source))(
+      await CancelRegistrationUseCase(donors: InMemoryDonorRepository(source))(
         registration.id,
       );
 
@@ -220,8 +231,8 @@ void main() {
 
     test('une collecte terminée ne peut plus être rejointe', () async {
       final useCase = JoinCampaignUseCase(
-        campaigns: CampaignRepositoryImpl(source),
-        donors: DonorRepositoryImpl(source),
+        campaigns: InMemoryCampaignRepository(source),
+        donors: InMemoryDonorRepository(source),
       );
 
       expect(

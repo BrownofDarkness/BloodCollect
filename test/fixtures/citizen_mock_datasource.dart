@@ -1,6 +1,8 @@
-import '../../../../core/constants/app_enums.dart';
-import '../../../../shared/domain/entities/entities.dart';
-import '../mock/mock_data.dart';
+import 'package:blood_collect/core/constants/app_enums.dart';
+import 'package:blood_collect/shared/domain/entities/entities.dart';
+
+import 'package:blood_collect/shared/domain/value_objects/city_reference.dart';
+import 'citizen_records_fixture.dart';
 
 /// Source de données de test pour le module Citoyen.
 ///
@@ -20,6 +22,11 @@ class CitizenMockDataSource {
     mockCampaignRegistrations,
   );
   final List<DonorMatchRequest> matches = List.of(mockDonorMatchRequests);
+
+  /// Position de référence du donneur : le centroïde de la commune déclarée au
+  /// profil. Les tests qui vérifient des distances la fixent explicitement.
+  GeoLocation get citizenOrigin =>
+      communeCentroids[citizen.commune] ?? defaultOrigin;
 
   int _sequence = 0;
 

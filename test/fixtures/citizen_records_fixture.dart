@@ -1,5 +1,6 @@
-import '../../../../core/constants/app_enums.dart';
-import '../../../../shared/domain/entities/entities.dart';
+import 'package:blood_collect/core/constants/app_enums.dart';
+import 'package:blood_collect/shared/domain/entities/entities.dart';
+import 'package:blood_collect/shared/presentation/models/donor_search_candidate.dart';
 
 // Enregistrements de test alignés sur les maquettes du PDF Citoyen (p. 6 à 9).
 //
@@ -254,3 +255,35 @@ List<BloodStockLot> _lotsFor({
         ),
   ];
 }
+
+/// Donneurs proposés par la recherche, alignés sur les maquettes.
+///
+/// `donorId` correspond au `userId` d'un donneur réel dans Firestore. La
+/// distance est nulle : `AppUser` ne porte pas de coordonnées, l'application
+/// affiche la commune.
+final List<DonorSearchCandidate> mockDonorsFixture = [
+  const DonorSearchCandidate(
+    donorId: 'donor_1',
+    bloodType: BloodType.oPos,
+    commune: 'Treichville',
+    distanceKm: 0,
+  ),
+  const DonorSearchCandidate(
+    donorId: 'donor_2',
+    bloodType: BloodType.oPos,
+    commune: 'Marcory',
+    distanceKm: 0,
+  ),
+  const DonorSearchCandidate(
+    donorId: 'donor_3',
+    bloodType: BloodType.oPos,
+    commune: 'Treichville',
+    distanceKm: 0,
+  ),
+  const DonorSearchCandidate(
+    donorId: 'donor_4',
+    bloodType: BloodType.aPos,
+    commune: 'Cocody',
+    distanceKm: 0,
+  ),
+];

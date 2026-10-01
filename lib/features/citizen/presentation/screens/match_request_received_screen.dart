@@ -8,8 +8,7 @@ import '../widgets/back_control.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../core/utils/distance_utils.dart';
-import '../../data/mock/commune_distances.dart';
-import '../../data/mock/mock_geography.dart';
+import 'package:blood_collect/shared/domain/value_objects/city_reference.dart';
 import '../../../../shared/presentation/models/enum_labels.dart';
 import '../../../../shared/presentation/widgets/app_snackbar.dart';
 import '../../../../shared/presentation/widgets/person_badge.dart';
@@ -111,10 +110,6 @@ class _MatchRequestReceivedScreenState
                   ref.invalidate(requesterInfoProvider(request.requesterId)),
             ),
             data: (requester) {
-              final distanceKm = CommuneDistances.forCommune(
-                requester.commune,
-                seedKey: request.id,
-              );
               final nearestCenterAsync = ref.watch(
                 nearestCenterProvider(requester.commune),
               );
@@ -186,8 +181,11 @@ class _MatchRequestReceivedScreenState
                           const SizedBox(height: 12),
                           _InfoRow(
                             icon: Icons.location_on_outlined,
-                            text:
-                                '${requester.commune} $middleDot ${formatApproximateDistanceKm(distanceKm)}',
+                            // Aucune distance ici : elle dépend de la position
+                            // du demandeur, qu'un citoyen ne partage pas. Le
+                            // centre le plus proche, plus bas, est en revanche
+                            // calculé depuis la commune.
+                            text: requester.commune,
                           ),
                           _InfoRow(
                             icon: Icons.priority_high,
@@ -270,8 +268,8 @@ class _MatchRequestReceivedScreenState
                         // donc le centre proposé ici est à la distance que le
                         // citoyen a déjà vue.
                         final centerDistance = distanceInKm(
-                          mockCommuneCentroids[requester.commune] ??
-                              mockDefaultOrigin,
+                          communeCentroids[requester.commune] ??
+                              defaultOrigin,
                           center.location,
                         );
                         return Container(

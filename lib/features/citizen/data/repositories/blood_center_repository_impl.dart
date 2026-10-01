@@ -1,28 +1,26 @@
-import '../../../../shared/domain/entities/entities.dart';
+import '../../../../../shared/domain/entities/entities.dart';
 import '../../domain/repositories/blood_center_repository.dart';
-import '../datasources/citizen_mock_datasource.dart';
+import '../datasources/blood_center_remote_datasource.dart';
 
-/// Implémentation de test de [BloodCenterRepository].
-/// Brancher une source Firestore réel ne demandera qu'une autre classe
-/// respectant le même contrat.
+/// Implémentation Firestore de [BloodCenterRepository].
+///
+/// Le filtrage des centres vérifiés est fait par la source : Firestone rejette
+/// l'index composite nécessaire pour croiser `verificationStatus` et un tri
+/// sans index déclaré, et la règle de sécurité impose de même que la
+/// vérification soit lue depuis le serveur.
 class BloodCenterRepositoryImpl implements BloodCenterRepository {
-  const BloodCenterRepositoryImpl(this._source);
+  const BloodCenterRepositoryImpl(this._remote);
 
-  final CitizenMockDataSource _source;
-
-  @override
-  Future<List<BloodCenter>> verifiedCenters() async =>
-      _source.centers.where((center) => center.isVerified).toList();
+  final BloodCenterRemoteDataSource _remote;
 
   @override
-  Future<BloodCenter?> centerById(String centerId) async {
-    for (final center in _source.centers) {
-      if (center.id == centerId) return center;
-    }
-    return null;
-  }
+  Future<List<BloodCenter>> verifiedCenters() => _remote.verifiedCenters();
 
   @override
-  Future<List<BloodStockLot>> lotsOfCenter(String centerId) async =>
-      _source.lots.where((lot) => lot.bloodCenterId == centerId).toList();
+  Future<BloodCenter?> centerById(String centerId) =>
+      _remote.centerById(centerId);
+
+  @override
+  Future<List<BloodStockLot>> lotsOfCenter(String centerId) =>
+      _remote.lotsOfCenter(centerId);
 }

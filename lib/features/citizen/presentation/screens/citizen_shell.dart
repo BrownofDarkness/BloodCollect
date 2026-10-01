@@ -6,8 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 /// Coquille de navigation du module Citoyen : 5 onglets, une pile conservée
 /// par onglet (StatefulShellRoute.indexedStack).
 ///
-/// L'onglet actif passe au rouge sans pastille d'arrière-plan, comme sur les
-/// maquettes : le rouge signale l'app active, pas une catégorie.
+/// L'onglet actif passe au rouge sans pastille d'arrière-plan
 class CitizenShell extends StatelessWidget {
   const CitizenShell({super.key, required this.navigationShell});
 

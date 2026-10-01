@@ -107,7 +107,7 @@ void main() {
   });
 
   testWidgets('demande envoyee', (t) async {
-    final candidate = (await _firstCandidate(t));
+    final candidate = _candidate();
     await capture(
       t,
       '4_demande_envoi',
@@ -211,31 +211,14 @@ Future<void> _loadFonts() async {
   print('polices chargees: $loaded');
 }
 
-/// Récupère un donneur réel de la recherche, pour rendre l'écran de demande
-/// avec les mêmes données que le parcours réel.
-Future<DonorSearchCandidate> _firstCandidate(WidgetTester tester) async {
-  final container = ProviderContainer();
-  addTearDown(container.dispose);
-  final sub = container.listen(
-    donorSearchResultsProvider(
-      const DonorSearchFilters(
-        bloodType: BloodType.oPos,
-        communes: {'Treichville', 'Marcory'},
-      ),
-    ),
-    (_, _) {},
-  );
-  addTearDown(sub.close);
-  for (final d in [300, 600, 1000, 1500]) {
-    await tester.pump(Duration(milliseconds: d));
-  }
-  final results = container.read(
-    donorSearchResultsProvider(
-      const DonorSearchFilters(
-        bloodType: BloodType.oPos,
-        communes: {'Treichville', 'Marcory'},
-      ),
-    ),
-  );
-  return results.requireValue.first;
-}
+/// Donneur servant à rendre l'écran de demande.
+///
+/// La recherche réelle lit Firestore, hors de portée d'un test de rendu : le
+/// candidat est donc construit ici, et l'écran est rendu exactement comme en
+/// production à partir des mêmes champs de `DonorSearchCandidate`.
+DonorSearchCandidate _candidate() => const DonorSearchCandidate(
+  donorId: 'donor_1',
+  bloodType: BloodType.oPos,
+  commune: 'Treichville',
+  distanceKm: 2.5,
+);

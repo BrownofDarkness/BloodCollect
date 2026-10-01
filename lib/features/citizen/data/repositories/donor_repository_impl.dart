@@ -1,78 +1,57 @@
-import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/domain/entities/entities.dart';
 import '../../domain/repositories/donor_repository.dart';
-import '../datasources/citizen_mock_datasource.dart';
-import '../mock/mock_data.dart';
+import '../datasources/campaign_remote_datasource.dart';
+import '../datasources/donor_remote_datasource.dart';
+import 'package:blood_collect/shared/domain/value_objects/city_reference.dart';
 
-/// Implémentation de test de [DonorRepository].
+/// Implémentation Firestore de [DonorRepository].
 ///
-/// L'écriture est réelle côté mémoire : inscrire puis annuler une collecte fait
-/// changer l'onglet « Donner » sans redémarrer l'application.
+/// Le profil vient du document `users` du connecté, les inscriptions et les
+/// mises en relation des collections dédiées. Un compte sans document `users`
+/// est une inscription inachevée : la méthode lève au lieu de renvoyer un
+/// profil de substitution, pour que l'appelant affiche l'état réel plutôt
+/// qu'un profil inventé.
 class DonorRepositoryImpl implements DonorRepository {
-  const DonorRepositoryImpl(this._source);
+  const DonorRepositoryImpl(this._donors, this._campaigns);
 
-  final CitizenMockDataSource _source;
-
-  @override
-  Future<AppUser> currentCitizen() async => _source.citizen;
+  final DonorRemoteDataSource _donors;
+  final CampaignRemoteDataSource _campaigns;
 
   @override
-  Future<GeoLocation> donorOrigin() async {
-    final commune = _source.citizen.commune;
-    return mockCommuneCentroids[commune] ?? mockDefaultOrigin;
+  Future<AppUser> currentCitizen() async {
+    final user = await _donors.currentUser();
+    if (user == null) {
+      throw StateError('Aucun utilisateur Firebase connecté.');
+    }
+    return user;
   }
 
   @override
-  Future<List<CampaignRegistration>> registrationsOf(String donorId) async =>
-      _source.registrations.where((r) => r.donorId == donorId).toList();
+  Future<GeoLocation> donorOrigin() async {
+    final commune = (await currentCitizen()).commune;
+    return communeCentroids[commune] ?? defaultOrigin;
+  }
 
   @override
-  Future<List<DonorMatchRequest>> matchesOf(String citizenId) async => _source
-      .matches
-      .where((m) => m.donorId == citizenId || m.requesterId == citizenId)
-      .toList();
+  Future<List<CampaignRegistration>> registrationsOf(String donorId) =>
+      _campaigns.registrationsOf(donorId);
+
+  @override
+  Future<List<DonorMatchRequest>> matchesOf(String citizenId) =>
+      _donors.matchesOf(citizenId);
 
   @override
   Future<CampaignRegistration> registerToCampaign({
     required String campaignId,
     required String donorId,
     DateTime? scheduledTime,
-  }) async {
-    final existing = _activeRegistrationFor(campaignId, donorId);
-    if (existing != null) return existing;
-
-    final registration = _source.nextRegistration(
-      campaignId: campaignId,
-      donorId: donorId,
-      scheduledTime: scheduledTime,
-    );
-    _source.registrations.add(registration);
-    return registration;
-  }
+  }) => _campaigns.registerToCampaign(
+    campaignId: campaignId,
+    donorId: donorId,
+    scheduledTime: scheduledTime,
+  );
 
   @override
-  Future<void> cancelRegistration(String registrationId) async {
-    final index = _source.registrations.indexWhere(
-      (r) => r.id == registrationId,
-    );
-    if (index < 0) return;
-
-    _source.registrations[index] = _source.registrations[index].copyWith(
-      status: RegistrationStatus.cancelled,
-    );
-  }
-
-  CampaignRegistration? _activeRegistrationFor(
-    String campaignId,
-    String donorId,
-  ) {
-    for (final registration in _source.registrations) {
-      final sameSlot =
-          registration.campaignId == campaignId &&
-          registration.donorId == donorId;
-      final isCancelled = registration.status == RegistrationStatus.cancelled;
-      if (sameSlot && !isCancelled) return registration;
-    }
-    return null;
-  }
+  Future<void> cancelRegistration(String registrationId) =>
+      _campaigns.cancelRegistration(registrationId);
 }

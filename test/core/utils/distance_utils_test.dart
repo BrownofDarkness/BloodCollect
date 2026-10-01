@@ -29,9 +29,5 @@ void main() {
       expect(formatDistanceKm(6.44), '6,4 km');
       expect(formatDistanceKm(9), '9,0 km');
     });
-
-    test('précise l\'approximation quand le contexte l\'exige', () {
-      expect(formatApproximateDistanceKm(1.24), 'à environ 1,2 km');
-    });
   });
 }

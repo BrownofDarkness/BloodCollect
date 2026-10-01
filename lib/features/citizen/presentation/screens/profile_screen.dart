@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../features/auth/presentation/providers/auth_providers.dart';
 import '../../domain/usecases/get_citizen_profile_usecase.dart';
 import '../providers/citizen_providers.dart';
 import '../widgets/citizen_scaffold_parts.dart';
@@ -29,7 +30,15 @@ class ProfileScreen extends ConsumerWidget {
           error: (error, _) => _ProfileError(
             onRetry: () => ref.invalidate(citizenProfileProvider),
           ),
-          data: (profile) => _ProfileBody(profile: profile),
+          data: (profile) => _ProfileBody(
+            profile: profile,
+            onSignOut: () async {
+              await ref.read(authRepositoryProvider).signOut();
+              // La redirection suit authStateProvider : le routeur renvoie
+              // lui-meme vers l'accueil apres la perte de session.
+              ref.invalidate(citizenProfileProvider);
+            },
+          ),
         ),
       ),
     );
@@ -37,9 +46,10 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 class _ProfileBody extends StatelessWidget {
-  const _ProfileBody({required this.profile});
+  const _ProfileBody({required this.profile, required this.onSignOut});
 
   final CitizenProfile profile;
+  final VoidCallback onSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +153,7 @@ class _ProfileBody extends StatelessWidget {
         ),
         const SizedBox(height: 26),
 
-        _SignOutButton(onTap: () => _notAvailable(context, 'Déconnexion')),
+        _SignOutButton(onTap: onSignOut),
         const SizedBox(height: 22),
         const Center(
           child: Text(

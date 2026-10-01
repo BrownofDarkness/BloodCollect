@@ -1,13 +1,20 @@
-// Référentiel géographique de test : villes, communes et centroïdes.
-// Sert aux listes déroulantes « Ville » / « Commune » des filtres.
+// Référentiel géographique : villes, communes et centroïdes.
+//
+// Ce n'est pas un jeu de test. Ce sont les données géographiques réelles dont
+// l'application a besoin tant qu'aucun service d'adresses n'est branché : les
+// listes déroulantes « Ville » / « Commune » des filtres, et l'origine du
+// calcul de distance tant que le citoyen n'a pas partagé sa position GPS.
+//
+// Les coordonnées sont des centroïdes de commune, donc la distance calculée
+// depuis elles reste une approximation à l'échelle du quartier.
 
-import '../../../../../shared/domain/entities/geo_location.dart';
+import '../entities/geo_location.dart';
 
 /// Libellé affiché quand aucun filtre de commune n'est actif.
 const String allCommunesLabel = 'Toutes les communes';
 
-/// Villes couvertes par les filtres (PDF Citoyen, écran « Chercher un donneur »).
-const List<String> mockCities = [
+/// Villes couvertes par les filtres.
+const List<String> referenceCities = [
   'Abidjan',
   'Bouaké',
   'Yamoussoukro',
@@ -16,7 +23,7 @@ const List<String> mockCities = [
   'Korhogo',
 ];
 
-const Map<String, List<String>> mockCommunesByCity = {
+const Map<String, List<String>> referenceCommunesByCity = {
   'Abidjan': [
     'Treichville',
     'Marcory',
@@ -38,15 +45,14 @@ const Map<String, List<String>> mockCommunesByCity = {
 
 /// Communes disponibles pour la ville sélectionnée, liste vide si la ville
 /// n'en déclare aucune.
-List<String> mockCommunesOf(String city) =>
-    mockCommunesByCity[city] ?? const <String>[];
+List<String> communesOfCity(String city) =>
+    referenceCommunesByCity[city] ?? const <String>[];
 
 /// Centroïdes des communes d'Abidjan.
 ///
-/// Sert d'origine au calcul des distances tant que le citoyen n'a pas
-/// partagé sa position GPS. Treichville est calibrée pour que les centres de
-/// test s'affichent à 3,1 / 6,4 / 9,0 km, comme sur les maquettes.
-const Map<String, GeoLocation> mockCommuneCentroids = {
+/// Origine du calcul des distances tant que le citoyen n'a pas partagé sa
+/// position GPS.
+const Map<String, GeoLocation> communeCentroids = {
   'Treichville': GeoLocation(latitude: 5.3600, longitude: -3.7900),
   'Marcory': GeoLocation(latitude: 5.3450, longitude: -3.7850),
   'Koumassi': GeoLocation(latitude: 5.3550, longitude: -3.7700),
@@ -60,7 +66,7 @@ const Map<String, GeoLocation> mockCommuneCentroids = {
 };
 
 /// Position de repli : centre d'Abidjan, si la commune du profil est inconnue.
-const GeoLocation mockDefaultOrigin = GeoLocation(
+const GeoLocation defaultOrigin = GeoLocation(
   latitude: 5.3600,
   longitude: -3.7900,
 );

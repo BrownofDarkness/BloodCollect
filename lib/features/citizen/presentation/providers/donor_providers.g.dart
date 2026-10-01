@@ -10,16 +10,114 @@ part of 'donor_providers.dart';
 // ignore_for_file: type=lint, type=warning
 /// Repositories du parcours donneurs.
 
-@ProviderFor(donorSearchRepository)
-final donorSearchRepositoryProvider = DonorSearchRepositoryProvider._();
+@ProviderFor(citizenReadRemoteDataSource)
+final citizenReadRemoteDataSourceProvider =
+    CitizenReadRemoteDataSourceProvider._();
 
 /// Repositories du parcours donneurs.
+
+final class CitizenReadRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          CitizenReadRemoteDataSource,
+          CitizenReadRemoteDataSource,
+          CitizenReadRemoteDataSource
+        >
+    with $Provider<CitizenReadRemoteDataSource> {
+  /// Repositories du parcours donneurs.
+  CitizenReadRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'citizenReadRemoteDataSourceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$citizenReadRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<CitizenReadRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CitizenReadRemoteDataSource create(Ref ref) {
+    return citizenReadRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CitizenReadRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CitizenReadRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$citizenReadRemoteDataSourceHash() =>
+    r'de4cd8f9acf1628d819ba612849b75db6afd7e5d';
+
+@ProviderFor(donorSearchRemoteDataSource)
+final donorSearchRemoteDataSourceProvider =
+    DonorSearchRemoteDataSourceProvider._();
+
+final class DonorSearchRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          DonorSearchRemoteDataSource,
+          DonorSearchRemoteDataSource,
+          DonorSearchRemoteDataSource
+        >
+    with $Provider<DonorSearchRemoteDataSource> {
+  DonorSearchRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'donorSearchRemoteDataSourceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$donorSearchRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<DonorSearchRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DonorSearchRemoteDataSource create(Ref ref) {
+    return donorSearchRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DonorSearchRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DonorSearchRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$donorSearchRemoteDataSourceHash() =>
+    r'b4be5545d36ae73c8cadd2c6e2ec4aa635845de6';
+
+@ProviderFor(donorSearchRepository)
+final donorSearchRepositoryProvider = DonorSearchRepositoryProvider._();
 
 final class DonorSearchRepositoryProvider
     extends
         $FunctionalProvider<DonorRepository, DonorRepository, DonorRepository>
     with $Provider<DonorRepository> {
-  /// Repositories du parcours donneurs.
   DonorSearchRepositoryProvider._()
     : super(
         from: null,
@@ -54,7 +152,7 @@ final class DonorSearchRepositoryProvider
 }
 
 String _$donorSearchRepositoryHash() =>
-    r'04fe6d67ea847c616e604cdcbab5c28a818bd94b';
+    r'324804ac6d4988beb18f3db36a54e612f4cdba0f';
 
 @ProviderFor(centerRepository)
 final centerRepositoryProvider = CenterRepositoryProvider._();
@@ -100,7 +198,7 @@ final class CenterRepositoryProvider
   }
 }
 
-String _$centerRepositoryHash() => r'3aafa8dbadb9e310389f5cc6337eb0dfafb390de';
+String _$centerRepositoryHash() => r'f4b72ed77c7a13fce701ee83582ab0925a417f7b';
 
 @ProviderFor(upcomingCampaignRepository)
 final upcomingCampaignRepositoryProvider =
@@ -149,7 +247,7 @@ final class UpcomingCampaignRepositoryProvider
 }
 
 String _$upcomingCampaignRepositoryHash() =>
-    r'5537567669bf4599ac494c19249afa11ecdc34e1';
+    r'3eac8018c1bf03a6ea4af808eb84ccd9571c4f26';
 
 @ProviderFor(citizenAccountRepository)
 final citizenAccountRepositoryProvider = CitizenAccountRepositoryProvider._();
@@ -197,7 +295,7 @@ final class CitizenAccountRepositoryProvider
 }
 
 String _$citizenAccountRepositoryHash() =>
-    r'bd56c970cdf01595c5b3de755de7b5ac01744a98';
+    r'772d75099aa754126febb03a74ce73a129678bc4';
 
 @ProviderFor(citizenAccount)
 final citizenAccountProvider = CitizenAccountProvider._();
@@ -527,7 +625,7 @@ final class MatchRequestFormProvider
   }
 }
 
-String _$matchRequestFormHash() => r'bd5c6a46725e33ebb3781500147c7f3dcc98a7ed';
+String _$matchRequestFormHash() => r'bff1f6956f478250a67b85c69968c9290cb9fc6b';
 
 final class MatchRequestFormFamily extends $Family
     with

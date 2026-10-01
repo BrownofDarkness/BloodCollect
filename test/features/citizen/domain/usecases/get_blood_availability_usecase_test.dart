@@ -1,21 +1,21 @@
 import 'package:blood_collect/core/constants/app_enums.dart';
 import 'package:blood_collect/shared/domain/entities/blood_availability.dart';
 import 'package:blood_collect/shared/domain/entities/blood_center.dart';
-import 'package:blood_collect/features/citizen/data/datasources/citizen_mock_datasource.dart';
-import 'package:blood_collect/features/citizen/data/repositories/blood_center_repository_impl.dart';
-import 'package:blood_collect/features/citizen/data/repositories/donor_repository_impl.dart';
 import 'package:blood_collect/features/citizen/domain/usecases/get_blood_availability_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../fixtures/citizen_mock_datasource.dart';
+import '../../../../fixtures/citizen_repository_fakes.dart';
+
 void main() {
-  late BloodCenterRepositoryImpl centers;
-  late DonorRepositoryImpl donors;
+  late InMemoryBloodCenterRepository centers;
+  late InMemoryDonorRepository donors;
   late GetBloodAvailabilityUseCase useCase;
 
   setUp(() {
     final source = CitizenMockDataSource();
-    centers = BloodCenterRepositoryImpl(source);
-    donors = DonorRepositoryImpl(source);
+    centers = InMemoryBloodCenterRepository(source);
+    donors = InMemoryDonorRepository(source);
     useCase = GetBloodAvailabilityUseCase(centers: centers, donors: donors);
   });
 
@@ -75,8 +75,8 @@ void main() {
       );
 
       final result = await GetBloodAvailabilityUseCase(
-        centers: BloodCenterRepositoryImpl(source),
-        donors: DonorRepositoryImpl(source),
+        centers: InMemoryBloodCenterRepository(source),
+        donors: InMemoryDonorRepository(source),
       )();
 
       expect(result.map((e) => e.center.id), isNot(contains('center_pending')));

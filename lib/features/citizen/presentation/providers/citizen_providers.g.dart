@@ -8,64 +8,155 @@ part of 'citizen_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Source unique et mutable pour l'ensemble du module : inscrire puis annuler
-/// une collecte se reflète partout. `keepAlive` évite qu'un onglet recrée un
-/// dépôt différent de celui d'un autre onglet.
+/// Sources Firestore du module. `keepAlive` évite qu'un onglet et un autre
 
-@ProviderFor(citizenMockDataSource)
-final citizenMockDataSourceProvider = CitizenMockDataSourceProvider._();
+@ProviderFor(bloodCenterRemoteDataSource)
+final bloodCenterRemoteDataSourceProvider =
+    BloodCenterRemoteDataSourceProvider._();
 
-/// Source unique et mutable pour l'ensemble du module : inscrire puis annuler
-/// une collecte se reflète partout. `keepAlive` évite qu'un onglet recrée un
-/// dépôt différent de celui d'un autre onglet.
+/// Sources Firestore du module. `keepAlive` évite qu'un onglet et un autre
 
-final class CitizenMockDataSourceProvider
+final class BloodCenterRemoteDataSourceProvider
     extends
         $FunctionalProvider<
-          CitizenMockDataSource,
-          CitizenMockDataSource,
-          CitizenMockDataSource
+          BloodCenterRemoteDataSource,
+          BloodCenterRemoteDataSource,
+          BloodCenterRemoteDataSource
         >
-    with $Provider<CitizenMockDataSource> {
-  /// Source unique et mutable pour l'ensemble du module : inscrire puis annuler
-  /// une collecte se reflète partout. `keepAlive` évite qu'un onglet recrée un
-  /// dépôt différent de celui d'un autre onglet.
-  CitizenMockDataSourceProvider._()
+    with $Provider<BloodCenterRemoteDataSource> {
+  /// Sources Firestore du module. `keepAlive` évite qu'un onglet et un autre
+  BloodCenterRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'citizenMockDataSourceProvider',
+        name: r'bloodCenterRemoteDataSourceProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$citizenMockDataSourceHash();
+  String debugGetCreateSourceHash() => _$bloodCenterRemoteDataSourceHash();
 
   @$internal
   @override
-  $ProviderElement<CitizenMockDataSource> $createElement(
+  $ProviderElement<BloodCenterRemoteDataSource> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  CitizenMockDataSource create(Ref ref) {
-    return citizenMockDataSource(ref);
+  BloodCenterRemoteDataSource create(Ref ref) {
+    return bloodCenterRemoteDataSource(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(CitizenMockDataSource value) {
+  Override overrideWithValue(BloodCenterRemoteDataSource value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<CitizenMockDataSource>(value),
+      providerOverride: $SyncValueProvider<BloodCenterRemoteDataSource>(value),
     );
   }
 }
 
-String _$citizenMockDataSourceHash() =>
-    r'c504fafa6ea0b6f2e5f0f4d2e0ffa2c2c7312669';
+String _$bloodCenterRemoteDataSourceHash() =>
+    r'15dfdfb0e38d3bd126c842f1eda78c2fab8337b6';
+
+@ProviderFor(campaignRemoteDataSource)
+final campaignRemoteDataSourceProvider = CampaignRemoteDataSourceProvider._();
+
+final class CampaignRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          CampaignRemoteDataSource,
+          CampaignRemoteDataSource,
+          CampaignRemoteDataSource
+        >
+    with $Provider<CampaignRemoteDataSource> {
+  CampaignRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'campaignRemoteDataSourceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$campaignRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<CampaignRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CampaignRemoteDataSource create(Ref ref) {
+    return campaignRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CampaignRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CampaignRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$campaignRemoteDataSourceHash() =>
+    r'8e9b312ddfd10340359459ed23430227e0060cf9';
+
+@ProviderFor(donorRemoteDataSource)
+final donorRemoteDataSourceProvider = DonorRemoteDataSourceProvider._();
+
+final class DonorRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          DonorRemoteDataSource,
+          DonorRemoteDataSource,
+          DonorRemoteDataSource
+        >
+    with $Provider<DonorRemoteDataSource> {
+  DonorRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'donorRemoteDataSourceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$donorRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<DonorRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DonorRemoteDataSource create(Ref ref) {
+    return donorRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DonorRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DonorRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$donorRemoteDataSourceHash() =>
+    r'f151f4985572894f5bce3b57cf89bbd707bb0727';
 
 @ProviderFor(bloodCenterRepository)
 final bloodCenterRepositoryProvider = BloodCenterRepositoryProvider._();
@@ -113,7 +204,7 @@ final class BloodCenterRepositoryProvider
 }
 
 String _$bloodCenterRepositoryHash() =>
-    r'924f451179d49eaaa9970d8e4c799a785bbb7423';
+    r'9c7edb4fe3cea2308c8c71f3b72a77b853b08c74';
 
 @ProviderFor(campaignRepository)
 final campaignRepositoryProvider = CampaignRepositoryProvider._();
@@ -161,7 +252,7 @@ final class CampaignRepositoryProvider
 }
 
 String _$campaignRepositoryHash() =>
-    r'a34af126a22dfe3a681a2316e1ddf464d0b63e8f';
+    r'96b124baca54262c18592abdd1003cfe2c6de634';
 
 @ProviderFor(donorRepository)
 final donorRepositoryProvider = DonorRepositoryProvider._();
@@ -203,7 +294,7 @@ final class DonorRepositoryProvider
   }
 }
 
-String _$donorRepositoryHash() => r'b64267fbeb756b8481ecd738fe5c1f6a38da29ab';
+String _$donorRepositoryHash() => r'9e8bbedd014c6c4fc72ed2c845eabd4419a40c3d';
 
 @ProviderFor(getBloodAvailabilityUseCase)
 final getBloodAvailabilityUseCaseProvider =
@@ -763,20 +854,20 @@ final class CitizenProfileProvider
 
 String _$citizenProfileHash() => r'de226eaa5c9197f94c421e622b8a5ed0ff561f22';
 
-/// Villes proposées par le filtre « Ville ». Référentiel de test tant qu'aucun
-/// service d'adresses n'est branché — voir `data/mock/README.md`.
+/// Villes proposées par le filtre « Ville ». Le référentiel géographique sert
+/// tant qu'aucun service d'adresses n'est branché.
 
 @ProviderFor(bloodFilterCities)
 final bloodFilterCitiesProvider = BloodFilterCitiesProvider._();
 
-/// Villes proposées par le filtre « Ville ». Référentiel de test tant qu'aucun
-/// service d'adresses n'est branché — voir `data/mock/README.md`.
+/// Villes proposées par le filtre « Ville ». Le référentiel géographique sert
+/// tant qu'aucun service d'adresses n'est branché.
 
 final class BloodFilterCitiesProvider
     extends $FunctionalProvider<List<String>, List<String>, List<String>>
     with $Provider<List<String>> {
-  /// Villes proposées par le filtre « Ville ». Référentiel de test tant qu'aucun
-  /// service d'adresses n'est branché — voir `data/mock/README.md`.
+  /// Villes proposées par le filtre « Ville ». Le référentiel géographique sert
+  /// tant qu'aucun service d'adresses n'est branché.
   BloodFilterCitiesProvider._()
     : super(
         from: null,
@@ -810,7 +901,7 @@ final class BloodFilterCitiesProvider
   }
 }
 
-String _$bloodFilterCitiesHash() => r'780cf7a3ae08cab0e807ed9743f3115be8c6d978';
+String _$bloodFilterCitiesHash() => r'e9c1191d2d21e7742e0c200924eb9896fcada59a';
 
 /// Communes d'une ville. Un résultat vide signifie « pas de filtre possible ».
 
@@ -873,7 +964,7 @@ final class BloodFilterCommunesProvider
 }
 
 String _$bloodFilterCommunesHash() =>
-    r'4a0c4848473ee0f05d7fabb43497aca569f397aa';
+    r'533971c3a232bebe4adcc6ad975cefc19770e2f7';
 
 /// Communes d'une ville. Un résultat vide signifie « pas de filtre possible ».
 

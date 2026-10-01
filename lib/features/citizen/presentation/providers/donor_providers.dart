@@ -7,8 +7,10 @@ import '../../../../shared/domain/entities/campaign.dart';
 import '../../../../shared/domain/entities/donor_match_request.dart';
 import '../../../../shared/presentation/models/donor_search_candidate.dart';
 import '../../../../shared/presentation/models/requester_info.dart';
-import '../../data/repositories/citizen_repositories_fake_impl.dart';
-import '../../data/repositories/donor_repository_fake_impl.dart';
+import '../../data/datasources/citizen_read_remote_datasource.dart';
+import '../../data/datasources/donor_search_remote_datasource.dart';
+import '../../data/repositories/citizen_read_repository_impl.dart';
+import '../../data/repositories/donor_search_repository_impl.dart';
 import '../../domain/repositories/citizen_read_repositories.dart';
 import '../../domain/repositories/donor_search_repository.dart';
 
@@ -16,17 +18,30 @@ part 'donor_providers.g.dart';
 
 /// Repositories du parcours donneurs.
 @Riverpod(keepAlive: true)
-DonorRepository donorSearchRepository(Ref ref) => FakeDonorRepository();
+CitizenReadRemoteDataSource citizenReadRemoteDataSource(Ref ref) =>
+    CitizenReadRemoteDataSource();
 
 @Riverpod(keepAlive: true)
-CenterRepository centerRepository(Ref ref) => FakeCenterRepository();
+DonorSearchRemoteDataSource donorSearchRemoteDataSource(Ref ref) =>
+    DonorSearchRemoteDataSource();
+
+@Riverpod(keepAlive: true)
+DonorRepository donorSearchRepository(Ref ref) =>
+    DonorSearchRepositoryImpl(ref.watch(donorSearchRemoteDataSourceProvider));
+
+@Riverpod(keepAlive: true)
+CenterRepository centerRepository(Ref ref) =>
+    CenterReadRepositoryImpl(ref.watch(citizenReadRemoteDataSourceProvider));
 
 @Riverpod(keepAlive: true)
 CampaignRepository upcomingCampaignRepository(Ref ref) =>
-    FakeCampaignRepository();
+    CampaignReadRepositoryImpl(
+      ref.watch(citizenReadRemoteDataSourceProvider),
+    );
 
 @Riverpod(keepAlive: true)
-ProfileRepository citizenAccountRepository(Ref ref) => FakeProfileRepository();
+ProfileRepository citizenAccountRepository(Ref ref) =>
+    ProfileReadRepositoryImpl(ref.watch(citizenReadRemoteDataSourceProvider));
 
 // --- Écran Accueil ---
 
@@ -170,13 +185,19 @@ class MatchRequestForm extends _$MatchRequestForm {
   void setShareContact(bool value) =>
       state = state.copyWith(shareContact: value);
 
-  Future<DonorMatchRequest> submit(String donorId) async {
+  /// `donorBloodType` est celui du donneur ciblé : il rejoint la demande
+  /// parce que le profil du donneur n'est pas lisible par le demandeur.
+  Future<DonorMatchRequest> submit(
+    String donorId, {
+    required BloodType donorBloodType,
+  }) async {
     state = state.copyWith(isSubmitting: true);
     try {
       return await ref
           .read(donorSearchRepositoryProvider)
           .sendMatchRequest(
             donorId: donorId,
+            bloodType: donorBloodType,
             priority: state.priority,
             message: state.message.isEmpty ? null : state.message,
             shareContact: state.shareContact,

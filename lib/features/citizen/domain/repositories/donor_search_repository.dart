@@ -13,8 +13,13 @@ abstract class DonorRepository {
   });
 
   /// Crée une DonorMatchRequest (recherche directe, bloodRequestId = null).
+  ///
+  /// `bloodType` est celui du donneur ciblé. Il est dénormalisé dans la
+  /// demande parce que le profil du donneur n'est pas lisible par le
+  /// demandeur : seul l'écran qui a fait la recherche le connaît.
   Future<DonorMatchRequest> sendMatchRequest({
     required String donorId,
+    required BloodType bloodType,
     required Priority priority,
     String? message,
     required bool shareContact,

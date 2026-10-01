@@ -22,9 +22,4 @@ double distanceInKm(GeoLocation from, GeoLocation to) {
 String formatDistanceKm(double km) =>
     '${km.toStringAsFixed(1).replaceAll('.', ',')} km';
 
-/// Variante approximative utilisée quand la distance reste approximative :
-/// 1.2 km -> « à environ 1,2 km ».
-String formatApproximateDistanceKm(double km) =>
-    'à environ ${km.toStringAsFixed(1).replaceAll('.', ',')} km';
-
 double _toRadians(double degrees) => degrees * math.pi / 180;

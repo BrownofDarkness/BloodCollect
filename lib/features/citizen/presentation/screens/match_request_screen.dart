@@ -224,7 +224,10 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
                     ? null
                     : () async {
                         try {
-                          await notifier.submit(widget.candidate.donorId);
+                          await notifier.submit(
+                            widget.candidate.donorId,
+                            donorBloodType: widget.candidate.bloodType,
+                          );
                           if (!context.mounted) return;
                           context.pop(true);
                         } catch (e) {
