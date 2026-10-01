@@ -13,18 +13,32 @@ class MatchStatusPill extends StatelessWidget {
 
   final DonorMatchStatus? status; // null = pas encore contacté
 
+  /// Texte foncé sur fond teinté : un statut ne se lit jamais par la couleur
+  /// seule, et le texte doit rester contrasté sur son propre fond.
   (Color fg, Color bg, IconData icon)? get _visual {
     switch (status) {
       case DonorMatchStatus.pending:
-        return (AppColors.limite, AppColors.limite, Icons.schedule);
+        return (AppColors.limite, AppColors.limiteLight, Icons.schedule);
       case DonorMatchStatus.accepted:
-        return (AppColors.disponible, AppColors.disponible, Icons.check_circle);
+        return (
+          AppColors.disponible,
+          AppColors.disponibleLight,
+          Icons.check_circle,
+        );
       case DonorMatchStatus.declined:
-        return (AppColors.indisponible, AppColors.indisponible, Icons.cancel);
+        return (
+          AppColors.indisponible,
+          AppColors.indisponibleLight,
+          Icons.cancel,
+        );
       case DonorMatchStatus.expired:
-        return (AppColors.textSecondary, AppColors.ligne, Icons.timer_off);
+        return (AppColors.textSecondary, AppColors.encart, Icons.timer_off);
       case DonorMatchStatus.completed:
-        return (AppColors.disponible, AppColors.disponible, Icons.favorite);
+        return (
+          AppColors.disponible,
+          AppColors.disponibleLight,
+          Icons.favorite,
+        );
       case null:
         return null;
     }

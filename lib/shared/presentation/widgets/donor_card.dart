@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_enums.dart';
+import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/distance_utils.dart';
 import '../models/donor_search_candidate.dart';
 import 'status_pill.dart';
 
@@ -18,6 +20,10 @@ class DonorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: AppColors.surface,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -55,7 +61,7 @@ class DonorCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${candidate.commune} · ${candidate.distanceKm.toStringAsFixed(1)} km',
+                            '${candidate.commune} $middleDot${formatDistanceKm(candidate.distanceKm)}',
                             style: const TextStyle(
                               color: AppColors.textSecondary,
                             ),
@@ -69,12 +75,18 @@ class DonorCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (candidate.matchStatus == DonorMatchStatus.pending) ...[
-              const Text(
-                'Demande envoyée',
-                style: TextStyle(color: AppColors.textSecondary),
+              const Divider(height: 24, color: AppColors.ligne),
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Demande envoyée',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ),
+                  const MatchStatusPill(status: DonorMatchStatus.pending),
+                ],
               ),
-              const SizedBox(height: 6),
-              const MatchStatusPill(status: DonorMatchStatus.pending),
             ] else
               SizedBox(
                 width: double.infinity,

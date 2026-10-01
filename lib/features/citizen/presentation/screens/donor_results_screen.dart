@@ -63,8 +63,19 @@ class DonorResultsScreen extends ConsumerWidget {
                   alignment: Alignment.centerLeft,
                   child: TextButton(
                     onPressed: () => context.pop(),
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                    child: const Text('Modifier'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.bleu,
+                      padding: EdgeInsets.zero,
+                    ),
+                    child: const Text(
+                      'Modifier',
+                      style: TextStyle(
+                        color: AppColors.bleu,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.bleu,
+                      ),
+                    ),
                   ),
                 ),
                 Container(
@@ -75,14 +86,33 @@ class DonorResultsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(Icons.info_outline, size: 18, color: AppColors.bleu),
                       SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          "Un donneur n'est pas du sang disponible. S'il accepte, il se rendra "
-                          "dans un centre de transfusion pour l'évaluation et le don.",
-                          style: TextStyle(fontSize: 12.5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Un donneur n'est pas du sang disponible.",
+                              style: TextStyle(
+                                color: AppColors.bleu,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              "S'il accepte, il se rendra dans un centre de "
+                              "transfusion pour l'évaluation et le don.",
+                              style: TextStyle(
+                                color: AppColors.bleu,
+                                fontSize: 12.5,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
