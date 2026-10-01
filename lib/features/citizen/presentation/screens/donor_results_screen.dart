@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../widgets/back_control.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/presentation/models/enum_labels.dart';
 import '../../../../shared/presentation/widgets/app_snackbar.dart';
@@ -30,6 +31,8 @@ class DonorResultsScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.ivoire,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: BackControl(onBack: () => context.pop()),
         title: const PersonBadge(label: 'Personne'),
       ),
       body: Column(

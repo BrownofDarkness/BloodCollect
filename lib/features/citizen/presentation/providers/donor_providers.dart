@@ -77,7 +77,8 @@ class DonorSearchFilters {
 @riverpod
 class DonorSearchFiltersNotifier extends _$DonorSearchFiltersNotifier {
   @override
-  DonorSearchFilters build() => const DonorSearchFilters();
+  DonorSearchFilters build() =>
+      const DonorSearchFilters(bloodType: BloodType.oPos);
 
   void setBloodType(BloodType type) => state = state.copyWith(bloodType: type);
 

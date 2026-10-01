@@ -15,22 +15,21 @@ class PersonBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.bleu,
+        color: AppColors.bleuSurface,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: AppColors.bleuLight),
+          Icon(icon, size: 14, color: AppColors.bleu),
           const SizedBox(width: 6),
           Text(
             label.toUpperCase(),
             style: const TextStyle(
               color: AppColors.bleu,
-
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-              letterSpacing: 0.3,
+              fontWeight: FontWeight.w800,
+              fontSize: 11,
+              letterSpacing: 1.1,
             ),
           ),
         ],

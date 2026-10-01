@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
+import '../widgets/back_control.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../data/mock/commune_distances.dart';
 import '../../../../shared/presentation/models/enum_labels.dart';
@@ -72,6 +74,8 @@ class _MatchRequestReceivedScreenState
       appBar: AppBar(
         backgroundColor: AppColors.ivoire,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: BackControl(onBack: () => context.go(AppRoutes.citizenHome)),
         title: const PersonBadge(label: 'Vous êtes donneur'),
       ),
       body: requestAsync.when(

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../widgets/back_control.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/presentation/widgets/blood_type_chip.dart';
 import '../../../../shared/presentation/widgets/person_badge.dart';
@@ -45,6 +46,8 @@ class DonorSearchScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.ivoire,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: BackControl(onBack: () => context.go(AppRoutes.citizenHome)),
         title: const PersonBadge(label: 'Personne'),
       ),
       body: SingleChildScrollView(
@@ -120,7 +123,7 @@ class DonorSearchScreen extends ConsumerWidget {
               ],
             ),
             Text(
-              '${filters.communes.length} commune(s) sélectionnée(s)',
+              _selectionLabel(filters.communes.length),
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 13,
@@ -218,3 +221,11 @@ class _SectionLabel extends StatelessWidget {
     );
   }
 }
+
+/// « 0 commune sélectionnée », « 1 commune sélectionnée », « 2 communes
+/// sélectionnées ». L'accord en nombre se lit sur un compteur.
+String _selectionLabel(int count) => switch (count) {
+  0 => 'Aucune commune sélectionnée',
+  1 => '1 commune sélectionnée',
+  _ => '$count communes sélectionnées',
+};

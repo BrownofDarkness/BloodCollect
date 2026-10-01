@@ -15,6 +15,11 @@ class CitizenHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Demande la plus recente en attente : c'est celle que le
+    // citoyen doit traiter en priorite, et celle que le point
+    // rouge signale.
+    const pendingRequestId = 'req_hc_1';
+
     final profileAsync = ref.watch(citizenAccountProvider);
     final campaignsAsync = ref.watch(upcomingCampaignsProvider);
 
@@ -38,8 +43,8 @@ class CitizenHomeScreen extends ConsumerWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.bleuLight,
-                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.bleuSurface,
+                      borderRadius: BorderRadius.circular(999),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
@@ -57,14 +62,10 @@ class CitizenHomeScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                  _NotificationButton(
+                    onTap: () => context.push(
+                      '${AppRoutes.citizenIncoming}/$pendingRequestId',
                     ),
-                    child: const Icon(Icons.notifications_none),
                   ),
                 ],
               ),
@@ -142,7 +143,13 @@ class CitizenHomeScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 Text(
-                                  profile.commune ?? '—',
+                                  // Commune et ville : « Treichville,
+                                  // Abidjan », pour situer le donneur sans
+                                  // avoir à ouvrir une autre écran.
+                                  [
+                                    profile.commune,
+                                    profile.city,
+                                  ].whereType<String>().join(', '),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
@@ -181,7 +188,7 @@ class CitizenHomeScreen extends ConsumerWidget {
                 title: 'Voir la disponibilité de sang',
                 subtitle:
                     'Consulter les disponibilités déclarées par les centres de transfusion.',
-                onTap: () {}, // Écran "Sang" hors périmètre de cette tâche
+                onTap: () => context.go(AppRoutes.citizenBlood),
               ),
               const SizedBox(height: 12),
               _ActionCard(
@@ -192,7 +199,7 @@ class CitizenHomeScreen extends ConsumerWidget {
                 title: 'Je veux donner mon sang',
                 subtitle:
                     'Centres de transfusion et collectes près de chez vous.',
-                onTap: () {}, // Écran "Donner" hors périmètre de cette tâche
+                onTap: () => context.go(AppRoutes.citizenDonate),
                 filled: true,
               ),
               const SizedBox(height: 28),
@@ -469,6 +476,58 @@ class _MiniChip extends StatelessWidget {
           fontSize: 11,
           color: AppColors.rouge,
           fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+/// Bouton de notifications : carré blanc, cloche encre, point rouge quand une
+/// demande attend une réponse.
+class _NotificationButton extends StatelessWidget {
+  const _NotificationButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Notifications',
+      child: Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Center(
+                  child: Icon(
+                    Icons.notifications_none,
+                    size: 22,
+                    color: AppColors.encre,
+                  ),
+                ),
+                Positioned(
+                  right: 11,
+                  top: 10,
+                  child: Container(
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      color: AppColors.rouge,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
