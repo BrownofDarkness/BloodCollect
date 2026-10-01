@@ -43,15 +43,20 @@ class CitizenReadRemoteDataSource {
         .toList();
   }
 
-  /// Collectes publiées et actives. Une collecte terminée reste visible :
-  /// l'accueil doit pouvoir rappeler qu'elle a eu lieu.
+  /// Collectes publiées et actives, de la plus proche de commencer à la plus
+  /// lointaine.
+  ///
+  /// Le tri est fait ici et non par `orderBy` : croiser un filtre `status` avec
+  /// un tri `startDate` exige un index composite, donc un déploiement des
+  /// règles avant que la requête ne fonctionne. L'ensemble tient en quelques
+  /// dizaines de documents.
   Future<List<Campaign>> publishedCampaigns() async {
     final snapshot = await _campaigns
         .where(Filter('status', whereIn: const ['published', 'active']))
-        .orderBy('startDate')
         .get();
     return snapshot.docs
         .map((doc) => CampaignModel.fromMap(doc.data(), doc.id))
-        .toList();
+        .toList()
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
   }
 }

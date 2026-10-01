@@ -30,12 +30,14 @@ class CampaignRemoteDataSource {
 
   /// Collectes à venir. Les brouillons et les annulées sont invisibles des
   /// citoyens, et la fin de la collecte la retire de la liste.
+  ///
+  /// Le tri par date est fait côté client : le croiser avec un `orderBy`
+  /// demanderait un index composite à déployer.
   Future<List<Campaign>> upcomingCampaigns({String? commune}) async {
     // whereIn est le nom actuel de l'opérateur « in » (isIn a été retiré).
     // Trois statuts visibles des citoyens : ni brouillon, ni annulée.
     final snapshot = await _campaigns
         .where(Filter('status', whereIn: _visibleStatuses))
-        .orderBy('startDate')
         .get();
 
     final now = DateTime.now();
@@ -46,13 +48,13 @@ class CampaignRemoteDataSource {
           (campaign) =>
               commune == null || campaign.targetCommunes.contains(commune),
         )
-        .toList();
+        .toList()
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
   }
 
   Future<List<Campaign>> upcomingCampaignsOfCenter(String centerId) async {
     final snapshot = await _campaigns
         .where('bloodCenterId', isEqualTo: centerId)
-        .orderBy('startDate')
         .get();
 
     final now = DateTime.now();
@@ -64,7 +66,8 @@ class CampaignRemoteDataSource {
               campaign.status != CampaignStatus.cancelled &&
               campaign.endDate.isAfter(now),
         )
-        .toList();
+        .toList()
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
   }
 
   Future<Campaign?> campaignById(String campaignId) async {

@@ -34,14 +34,17 @@ class DonorRemoteDataSource {
 
   /// Mises en relation où le citoyen est donneur cible ou demandeur, de
   /// l'ordre de la plus récente : c'est l'ordre d'un fil de discussion.
+  ///
+  /// Le tri par date est fait côté client. Un `orderBy('createdAt')` couplé à
+  /// l'un de ces filtres exige un index composite, donc un déploiement avant
+  /// que la requête ne réponde ; or l'onglet Profil ne doit pas dépendre de
+  /// cette étape. Un citoyen n'a qu'une poignée de mises en relation.
   Future<List<DonorMatchRequest>> matchesOf(String citizenId) async {
     final donorSide = await _matches
         .where('donorId', isEqualTo: citizenId)
-        .orderBy('createdAt', descending: true)
         .get();
     final requesterSide = await _matches
         .where('requesterId', isEqualTo: citizenId)
-        .orderBy('createdAt', descending: true)
         .get();
 
     final docs = <QueryDocumentSnapshot<Map<String, dynamic>>>[
