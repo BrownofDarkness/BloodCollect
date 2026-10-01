@@ -4,6 +4,7 @@ import '../../domain/repositories/donor_search_repository.dart';
 import '../../../../shared/presentation/models/donor_search_candidate.dart';
 import '../../../../shared/presentation/models/requester_info.dart';
 import '../mock/donor_mock_data.dart';
+import '../mock/mock_records.dart';
 
 /// Implémentation mock du DonorRepository, alignée sur DonorMatchRequest.
 /// `failNextSearch` / `failNextSend` forcent un cas d'erreur depuis les
@@ -62,9 +63,9 @@ class FakeDonorRepository implements DonorRepository {
     final now = DateTime.now();
     final request = DonorMatchRequest(
       id: 'req_${_autoId++}',
-      requesterId: mockCitizenProfile.id,
+      requesterId: mockCitizen.id,
       donorId: donorId,
-      bloodType: mockCitizenProfile.bloodType ?? BloodType.oPos,
+      bloodType: mockCitizen.bloodType ?? BloodType.oPos,
       priority: priority,
       status: DonorMatchStatus.pending,
       shareContact: shareContact,

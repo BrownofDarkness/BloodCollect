@@ -1,44 +1,47 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/app_enums.dart';
-import '../../data/repositories/citizen_repositories_fake_impl.dart';
-import '../../data/repositories/donor_repository_fake_impl.dart';
 import '../../../../shared/domain/entities/app_user.dart';
 import '../../../../shared/domain/entities/blood_center.dart';
 import '../../../../shared/domain/entities/campaign.dart';
 import '../../../../shared/domain/entities/donor_match_request.dart';
-import '../../domain/repositories/citizen_read_repositories.dart';
-import '../../domain/repositories/donor_search_repository.dart';
 import '../../../../shared/presentation/models/donor_search_candidate.dart';
 import '../../../../shared/presentation/models/requester_info.dart';
+import '../../data/repositories/citizen_repositories_fake_impl.dart';
+import '../../data/repositories/donor_repository_fake_impl.dart';
+import '../../domain/repositories/citizen_read_repositories.dart';
+import '../../domain/repositories/donor_search_repository.dart';
 
-// --- Repositories ---
-// En Partie 2, remplacer uniquement ces 4 providers par les implémentations
-// Firestore : aucun écran n'a besoin d'être modifié.
-final donorSearchRepositoryProvider = Provider<DonorRepository>(
-  (ref) => FakeDonorRepository(),
-);
-final centerRepositoryProvider = Provider<CenterRepository>(
-  (ref) => FakeCenterRepository(),
-);
-final upcomingCampaignRepositoryProvider = Provider<CampaignRepository>(
-  (ref) => FakeCampaignRepository(),
-);
-final citizenAccountRepositoryProvider = Provider<ProfileRepository>(
-  (ref) => FakeProfileRepository(),
-);
+part 'donor_providers.g.dart';
+
+/// Repositories du parcours donneurs.
+@Riverpod(keepAlive: true)
+DonorRepository donorSearchRepository(Ref ref) => FakeDonorRepository();
+
+@Riverpod(keepAlive: true)
+CenterRepository centerRepository(Ref ref) => FakeCenterRepository();
+
+@Riverpod(keepAlive: true)
+CampaignRepository upcomingCampaignRepository(Ref ref) =>
+    FakeCampaignRepository();
+
+@Riverpod(keepAlive: true)
+ProfileRepository citizenAccountRepository(Ref ref) => FakeProfileRepository();
 
 // --- Écran Accueil ---
-final citizenAccountProvider = FutureProvider<AppUser>((ref) {
-  return ref.watch(citizenAccountRepositoryProvider).getCurrentProfile();
-});
 
-final upcomingCampaignsProvider = FutureProvider<List<Campaign>>((ref) {
+@riverpod
+Future<AppUser> citizenAccount(Ref ref) {
+  return ref.watch(citizenAccountRepositoryProvider).getCurrentProfile();
+}
+
+@riverpod
+Future<List<Campaign>> upcomingCampaigns(Ref ref) {
   return ref.watch(upcomingCampaignRepositoryProvider).upcoming();
-});
+}
 
 // --- Écran Chercher un donneur (état des filtres) ---
+
 class DonorSearchFilters {
   const DonorSearchFilters({
     this.bloodType,
@@ -52,6 +55,8 @@ class DonorSearchFilters {
   final Set<String> communes;
   final Priority priority;
 
+  /// Une recherche n'est lancé qu'un groupe sanguin et au moins une commune
+  /// sont choisis : sans cela, le citizenéen verrait tout Abidjan.
   bool get isValid => bloodType != null && communes.isNotEmpty;
 
   DonorSearchFilters copyWith({
@@ -69,14 +74,21 @@ class DonorSearchFilters {
   }
 }
 
-class DonorSearchFiltersNotifier extends StateNotifier<DonorSearchFilters> {
-  DonorSearchFiltersNotifier() : super(const DonorSearchFilters());
+@riverpod
+class DonorSearchFiltersNotifier extends _$DonorSearchFiltersNotifier {
+  @override
+  DonorSearchFilters build() => const DonorSearchFilters();
 
   void setBloodType(BloodType type) => state = state.copyWith(bloodType: type);
-  void setPriority(Priority p) => state = state.copyWith(priority: p);
+
+  void setPriority(Priority priority) =>
+      state = state.copyWith(priority: priority);
+
+  void setCity(String city) => state = state.copyWith(city: city);
+
   void toggleCommune(String commune) {
     final updated = {...state.communes};
-    updated.contains(commune) ? updated.remove(commune) : updated.add(commune);
+    if (!updated.remove(commune)) updated.add(commune);
     state = state.copyWith(communes: updated);
   }
 
@@ -84,31 +96,35 @@ class DonorSearchFiltersNotifier extends StateNotifier<DonorSearchFilters> {
       state = state.copyWith(communes: all.toSet());
 }
 
-final donorSearchFiltersProvider =
-    StateNotifierProvider.autoDispose<
-      DonorSearchFiltersNotifier,
-      DonorSearchFilters
-    >((ref) => DonorSearchFiltersNotifier());
+/// Écrans Donneurs potentiels.
+@riverpod
+Future<List<DonorSearchCandidate>> donorSearchResults(
+  Ref ref,
+  DonorSearchFilters filters,
+) {
+  return ref
+      .watch(donorSearchRepositoryProvider)
+      .searchDonors(
+        bloodType: filters.bloodType!,
+        communes: filters.communes.toList(),
+        priority: filters.priority,
+      );
+}
 
-// --- Écran Donneurs potentiels ---
-final donorSearchResultsProvider = FutureProvider.autoDispose
-    .family<List<DonorSearchCandidate>, DonorSearchFilters>((ref, filters) {
-      return ref
-          .watch(donorSearchRepositoryProvider)
-          .searchDonors(
-            bloodType: filters.bloodType!,
-            communes: filters.communes.toList(),
-            priority: filters.priority,
-          );
-    });
+/// Donneurs déjà contactés dans cette session : permet de basculer la carte en
+/// « En attente » sans relancer la recherche.
+@riverpod
+class ContactedDonorIds extends _$ContactedDonorIds {
+  @override
+  Set<String> build() => const {};
 
-/// Statut local des cartes déjà contactées dans cette session (évite un
-/// refetch juste pour basculer "Contacter" -> "En attente").
-final contactedDonorIdsProvider = StateProvider.autoDispose<Set<String>>(
-  (ref) => {},
-);
+  void markContacted(String donorId) {
+    state = {...state, donorId};
+  }
+}
 
 // --- Écran Demande de mise en relation ---
+
 class MatchRequestFormState {
   const MatchRequestFormState({
     this.priority = Priority.normal,
@@ -119,6 +135,9 @@ class MatchRequestFormState {
 
   final Priority priority;
   final String message;
+
+  /// Le demandeur ne transmet son numéro qu'après acceptation, et seulement
+  /// s'il l'a demandé.
   final bool shareContact;
   final bool isSubmitting;
 
@@ -137,54 +156,53 @@ class MatchRequestFormState {
   }
 }
 
-class MatchRequestFormNotifier extends StateNotifier<MatchRequestFormState> {
-  MatchRequestFormNotifier(this._repository)
-    : super(const MatchRequestFormState());
-  final DonorRepository _repository;
+@riverpod
+class MatchRequestForm extends _$MatchRequestForm {
+  @override
+  MatchRequestFormState build(String donorId) => const MatchRequestFormState();
 
-  void setPriority(Priority p) => state = state.copyWith(priority: p);
-  void setMessage(String m) => state = state.copyWith(message: m);
-  void setShareContact(bool v) => state = state.copyWith(shareContact: v);
+  void setPriority(Priority priority) =>
+      state = state.copyWith(priority: priority);
+
+  void setMessage(String message) => state = state.copyWith(message: message);
+
+  void setShareContact(bool value) =>
+      state = state.copyWith(shareContact: value);
 
   Future<DonorMatchRequest> submit(String donorId) async {
     state = state.copyWith(isSubmitting: true);
     try {
-      return await _repository.sendMatchRequest(
-        donorId: donorId,
-        priority: state.priority,
-        message: state.message.isEmpty ? null : state.message,
-        shareContact: state.shareContact,
-      );
+      return await ref
+          .read(donorSearchRepositoryProvider)
+          .sendMatchRequest(
+            donorId: donorId,
+            priority: state.priority,
+            message: state.message.isEmpty ? null : state.message,
+            shareContact: state.shareContact,
+          );
     } finally {
       state = state.copyWith(isSubmitting: false);
     }
   }
 }
 
-final matchRequestFormProvider = StateNotifierProvider.autoDispose
-    .family<MatchRequestFormNotifier, MatchRequestFormState, String>((
-      ref,
-      donorId,
-    ) {
-      return MatchRequestFormNotifier(ref.watch(donorSearchRepositoryProvider));
-    });
-
 // --- Écran Demande reçue ---
-final incomingMatchRequestProvider = FutureProvider.autoDispose
-    .family<DonorMatchRequest, String>((ref, requestId) {
-      return ref
-          .watch(donorSearchRepositoryProvider)
-          .getIncomingRequest(requestId);
-    });
 
-final requesterInfoProvider = FutureProvider.autoDispose
-    .family<RequesterInfo, String>((ref, requesterId) {
-      return ref
-          .watch(donorSearchRepositoryProvider)
-          .resolveRequester(requesterId);
-    });
+@riverpod
+Future<DonorMatchRequest> incomingMatchRequest(Ref ref, String requestId) {
+  return ref.watch(donorSearchRepositoryProvider).getIncomingRequest(requestId);
+}
 
-final nearestCenterProvider = FutureProvider.autoDispose
-    .family<BloodCenter?, String>((ref, commune) {
-      return ref.watch(centerRepositoryProvider).nearestTo(commune);
-    });
+/// Résout l'auteur d'une demande pour l'afficher au donneur. Un donneur ne voit
+/// ni le nom du patient ni de donnée médicale : seulement qui demande, et dans
+/// quelle commune.
+@riverpod
+Future<RequesterInfo> requesterInfo(Ref ref, String requesterId) {
+  return ref.watch(donorSearchRepositoryProvider).resolveRequester(requesterId);
+}
+
+/// Centre agréé le plus proche, proposé au donneur qui accepte.
+@riverpod
+Future<BloodCenter?> nearestCenter(Ref ref, String commune) {
+  return ref.watch(centerRepositoryProvider).nearestTo(commune);
+}

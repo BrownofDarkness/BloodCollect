@@ -131,7 +131,7 @@ class DonorResultsScreen extends ConsumerWidget {
                         if (sent == true) {
                           ref
                               .read(contactedDonorIdsProvider.notifier)
-                              .update((state) => {...state, candidate.donorId});
+                              .markContacted(candidate.donorId);
                           if (context.mounted) {
                             AppSnackbar.success(
                               context,
