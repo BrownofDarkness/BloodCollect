@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/date_utils.dart';
+import '../../../../core/utils/distance_utils.dart';
 import '../../../../shared/presentation/models/donor_search_candidate.dart';
 import '../../../../shared/presentation/models/enum_labels.dart';
 import '../../../../shared/presentation/widgets/app_snackbar.dart';
@@ -87,7 +89,7 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
                         style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                       Text(
-                        '${widget.candidate.commune} · ${widget.candidate.distanceKm.toStringAsFixed(1)} km',
+                        '${widget.candidate.commune} $middleDot${formatDistanceKm(widget.candidate.distanceKm)}',
                         style: const TextStyle(color: AppColors.textSecondary),
                       ),
                     ],
@@ -209,6 +211,15 @@ class _MatchRequestScreenState extends ConsumerState<MatchRequestScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.bleu,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.ligne,
+                  minimumSize: const Size(double.infinity, 52),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 onPressed: form.isSubmitting
                     ? null
                     : () async {

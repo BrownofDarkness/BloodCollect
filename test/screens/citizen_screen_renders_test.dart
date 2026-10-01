@@ -9,6 +9,7 @@ import 'package:blood_collect/features/citizen/presentation/screens/donate_scree
 import 'package:blood_collect/features/citizen/presentation/screens/donor_results_screen.dart';
 import 'package:blood_collect/features/citizen/presentation/screens/donor_search_screen.dart';
 import 'package:blood_collect/features/citizen/presentation/screens/match_request_received_screen.dart';
+import 'package:blood_collect/features/citizen/presentation/screens/match_request_screen.dart';
 import 'package:blood_collect/features/citizen/presentation/screens/profile_screen.dart';
 import 'package:blood_collect/features/citizen/presentation/providers/donor_providers.dart';
 import 'package:blood_collect/shared/presentation/models/donor_search_candidate.dart';
@@ -92,6 +93,15 @@ void main() {
       communes: const {'Treichville', 'Marcory'},
     );
     await capture(t, '3_donneurs_resultats', DonorResultsScreen(filters: filters));
+  });
+
+  testWidgets('demande envoyee', (t) async {
+    final candidate = (await _firstCandidate(t));
+    await capture(
+      t,
+      '4_demande_envoi',
+      MatchRequestScreen(candidate: candidate),
+    );
   });
 
   testWidgets('demande recue', (t) async {
@@ -180,4 +190,33 @@ Future<void> _loadFonts() async {
   }
   // ignore: avoid_print
   print('polices chargees: $loaded');
+}
+
+/// Récupère un donneur réel de la recherche, pour rendre l'écran de demande
+/// avec les mêmes données que le parcours réel.
+Future<DonorSearchCandidate> _firstCandidate(WidgetTester tester) async {
+  final container = ProviderContainer();
+  addTearDown(container.dispose);
+  final sub = container.listen(
+    donorSearchResultsProvider(
+      const DonorSearchFilters(
+        bloodType: BloodType.oPos,
+        communes: {'Treichville', 'Marcory'},
+      ),
+    ),
+    (_, _) {},
+  );
+  addTearDown(sub.close);
+  for (final d in [300, 600, 1000, 1500]) {
+    await tester.pump(Duration(milliseconds: d));
+  }
+  final results = container.read(
+    donorSearchResultsProvider(
+      const DonorSearchFilters(
+        bloodType: BloodType.oPos,
+        communes: {'Treichville', 'Marcory'},
+      ),
+    ),
+  );
+  return results.requireValue.first;
 }
