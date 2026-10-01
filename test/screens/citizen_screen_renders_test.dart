@@ -37,7 +37,7 @@ void main() {
     WidgetTester tester,
     String name,
     Widget child, {
-    Size size = const Size(390, 844),
+    Size size = const Size(390, 1200),
   }) async {
     tester.view.physicalSize = size * 3;
     tester.view.devicePixelRatio = 3;
