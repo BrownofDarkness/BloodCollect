@@ -18,7 +18,7 @@ class CitizenHomeScreen extends ConsumerWidget {
     // Demande la plus recente en attente : c'est celle que le
     // citoyen doit traiter en priorite, et celle que le point
     // rouge signale.
-    const pendingRequestId = 'req_hc_1';
+    final pendingAsync = ref.watch(pendingIncomingRequestProvider);
 
     final profileAsync = ref.watch(citizenAccountProvider);
     final campaignsAsync = ref.watch(upcomingCampaignsProvider);
@@ -63,9 +63,17 @@ class CitizenHomeScreen extends ConsumerWidget {
                     ),
                   ),
                   _NotificationButton(
-                    onTap: () => context.push(
-                      '${AppRoutes.citizenIncoming}/$pendingRequestId',
-                    ),
+                    // La pastille n'apparait que s'il y a reellement une
+                    // demande a traiter, et le tap ouvre cette demande.
+                    pendingCount: pendingAsync.value == null ? 0 : 1,
+                    onTap: () {
+                      final pending = pendingAsync.value;
+                      if (pending != null) {
+                        context.push(
+                          '${AppRoutes.citizenIncoming}/${pending.id}',
+                        );
+                      }
+                    },
                   ),
                 ],
               ),
@@ -465,9 +473,14 @@ class _MiniChip extends StatelessWidget {
 /// Bouton de notifications : carré blanc, cloche encre, point rouge quand une
 /// demande attend une réponse.
 class _NotificationButton extends StatelessWidget {
-  const _NotificationButton({required this.onTap});
+  const _NotificationButton({required this.onTap, this.pendingCount = 0});
 
   final VoidCallback onTap;
+
+  /// Nombre de demandes en attente. A zero, aucune pastille : une pastille
+  /// permanente alors qu'il n'y a rien a traiter apprend au citoyen a
+  /// l'ignorer.
+  final int pendingCount;
 
   @override
   Widget build(BuildContext context) {
@@ -493,18 +506,19 @@ class _NotificationButton extends StatelessWidget {
                     color: AppColors.encre,
                   ),
                 ),
-                Positioned(
-                  right: 11,
-                  top: 10,
-                  child: Container(
-                    width: 9,
-                    height: 9,
-                    decoration: const BoxDecoration(
-                      color: AppColors.rouge,
-                      shape: BoxShape.circle,
+                if (pendingCount > 0)
+                  Positioned(
+                    right: 11,
+                    top: 10,
+                    child: Container(
+                      width: 9,
+                      height: 9,
+                      decoration: const BoxDecoration(
+                        color: AppColors.rouge,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

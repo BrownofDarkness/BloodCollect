@@ -27,6 +27,10 @@ abstract class DonorRepository {
 
   Future<DonorMatchRequest> getIncomingRequest(String requestId);
 
+  /// Demandes de mobilisation adressées au citoyen connecté, la plus récente
+  /// d'abord. Alimente le compteur de l'accueil et la liste des demandes reçues.
+  Future<List<DonorMatchRequest>> incomingRequests();
+
   Future<RequesterInfo> resolveRequester(String requesterId);
 
   /// NOTE : DonorMatchStatus n'a pas de valeur "indisponible" — mappé sur

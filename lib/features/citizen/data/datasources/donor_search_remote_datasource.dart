@@ -76,8 +76,14 @@ class DonorSearchRemoteDataSource {
   /// Identité anonymisée du demandeur : un citoyen n'apparaît jamais par son
   /// nom, un centre par sa raison sociale.
   Future<RequesterInfo> resolveRequester(String requesterId) async {
-    final user = await _users.doc(requesterId).get();
-    if (user.exists) {
+    // Les fiches `users` ne sont lisibles que par leur propriétaire ou un admin.
+    // Un citoyen qui ouvre une demande ne peut donc pas lire le profil du
+    // demandeur : l'accès échoue, ce qui est normal et non une panne.
+    //
+    // La demande reste affichable : les centres de santé et de transfusion ont
+    // une fiche publique, et un demandeur particulier est présenté anonyme.
+    try {
+      final user = await _users.doc(requesterId).get();
       final data = user.data();
       if (data?['role'] == UserRole.citizen.firestoreValue) {
         return RequesterInfo(
@@ -86,6 +92,8 @@ class DonorSearchRemoteDataSource {
           commune: (data?['commune'] as String?) ?? '—',
         );
       }
+    } on FirebaseException {
+      // Demandeur non lisible ici : repris par les fiches de centres plus bas.
     }
 
     for (final collection in [_healthCenters, _bloodCenters]) {
@@ -175,6 +183,27 @@ class DonorSearchRemoteDataSource {
     final doc = await _matches.doc(requestId).get();
     if (!doc.exists) return null;
     return DonorMatchRequestModel.fromMap(doc.data()!, doc.id);
+  }
+
+  /// Demandes adressées au citoyen connecté. Le filtre porte sur `donorId`,
+  /// que la règle autorise : un citoyen ne voit que les mobilisations dont il
+  /// est la cible.
+  ///
+  /// Un seul filtre equality, sans `orderBy` ni second `where` : la liste
+  /// triée côté Dart évite d'exiger un index composite à déployer.
+  Future<List<DonorMatchRequest>> incomingRequests() async {
+    final requesterId = _requesterId;
+    if (requesterId == null) return const [];
+
+    final snapshot = await _matches
+        .where('donorId', isEqualTo: requesterId)
+        .get();
+
+    final requests = snapshot.docs
+        .map((doc) => DonorMatchRequestModel.fromMap(doc.data(), doc.id))
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return requests;
   }
 
   /// Réponse du donneur : les règles n'autorisent que le statut et la date de

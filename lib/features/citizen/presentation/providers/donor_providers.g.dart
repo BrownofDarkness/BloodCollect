@@ -673,6 +673,106 @@ abstract class _$MatchRequestForm extends $Notifier<MatchRequestFormState> {
   }
 }
 
+/// Demandes de mobilisation reçues, la plus récente d'abord.
+
+@ProviderFor(incomingMatchRequests)
+final incomingMatchRequestsProvider = IncomingMatchRequestsProvider._();
+
+/// Demandes de mobilisation reçues, la plus récente d'abord.
+
+final class IncomingMatchRequestsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<DonorMatchRequest>>,
+          List<DonorMatchRequest>,
+          FutureOr<List<DonorMatchRequest>>
+        >
+    with
+        $FutureModifier<List<DonorMatchRequest>>,
+        $FutureProvider<List<DonorMatchRequest>> {
+  /// Demandes de mobilisation reçues, la plus récente d'abord.
+  IncomingMatchRequestsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'incomingMatchRequestsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$incomingMatchRequestsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<DonorMatchRequest>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<DonorMatchRequest>> create(Ref ref) {
+    return incomingMatchRequests(ref);
+  }
+}
+
+String _$incomingMatchRequestsHash() =>
+    r'5882d991f4471991a02a83257e0e8ad7c1dd83b5';
+
+/// Demande reçue qui attend encore une réponse : c'est celle que l'accueil
+/// propose d'ouvrir en priorité. Une liste sans demande en attente ne doit pas
+/// afficher de pastille.
+
+@ProviderFor(pendingIncomingRequest)
+final pendingIncomingRequestProvider = PendingIncomingRequestProvider._();
+
+/// Demande reçue qui attend encore une réponse : c'est celle que l'accueil
+/// propose d'ouvrir en priorité. Une liste sans demande en attente ne doit pas
+/// afficher de pastille.
+
+final class PendingIncomingRequestProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DonorMatchRequest?>,
+          DonorMatchRequest?,
+          FutureOr<DonorMatchRequest?>
+        >
+    with
+        $FutureModifier<DonorMatchRequest?>,
+        $FutureProvider<DonorMatchRequest?> {
+  /// Demande reçue qui attend encore une réponse : c'est celle que l'accueil
+  /// propose d'ouvrir en priorité. Une liste sans demande en attente ne doit pas
+  /// afficher de pastille.
+  PendingIncomingRequestProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pendingIncomingRequestProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$pendingIncomingRequestHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<DonorMatchRequest?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<DonorMatchRequest?> create(Ref ref) {
+    return pendingIncomingRequest(ref);
+  }
+}
+
+String _$pendingIncomingRequestHash() =>
+    r'75c96f29170702fcd9a85a70dace8d2a3e0cde67';
+
 @ProviderFor(incomingMatchRequest)
 final incomingMatchRequestProvider = IncomingMatchRequestFamily._();
 

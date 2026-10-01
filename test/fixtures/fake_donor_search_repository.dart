@@ -91,6 +91,14 @@ class FakeDonorSearchRepository implements DonorRepository {
     return request;
   }
 
+  /// Demandes reçues, la plus récente d'abord. Le champ est public pour que le
+  /// test puisse y placer une demande venue d'un autre utilisateur.
+  final List<DonorMatchRequest> incoming = [];
+
+  @override
+  Future<List<DonorMatchRequest>> incomingRequests() async =>
+      [...incoming]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
   @override
   Future<RequesterInfo> resolveRequester(String requesterId) async =>
       _requesters[requesterId] ??

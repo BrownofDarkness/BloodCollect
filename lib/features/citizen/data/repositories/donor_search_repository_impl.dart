@@ -53,6 +53,11 @@ class DonorSearchRepositoryImpl implements DonorRepository {
   }
 
   @override
+  @override
+  Future<List<DonorMatchRequest>> incomingRequests() =>
+      _remote.incomingRequests();
+
+  @override
   Future<RequesterInfo> resolveRequester(String requesterId) =>
       _remote.resolveRequester(requesterId);
 

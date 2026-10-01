@@ -210,6 +210,24 @@ class MatchRequestForm extends _$MatchRequestForm {
 
 // --- Écran Demande reçue ---
 
+/// Demandes de mobilisation reçues, la plus récente d'abord.
+@riverpod
+Future<List<DonorMatchRequest>> incomingMatchRequests(Ref ref) {
+  return ref.watch(donorSearchRepositoryProvider).incomingRequests();
+}
+
+/// Demande reçue qui attend encore une réponse : c'est celle que l'accueil
+/// propose d'ouvrir en priorité. Une liste sans demande en attente ne doit pas
+/// afficher de pastille.
+@riverpod
+Future<DonorMatchRequest?> pendingIncomingRequest(Ref ref) async {
+  final requests = await ref.watch(incomingMatchRequestsProvider.future);
+  for (final request in requests) {
+    if (request.status == DonorMatchStatus.pending) return request;
+  }
+  return null;
+}
+
 @riverpod
 Future<DonorMatchRequest> incomingMatchRequest(Ref ref, String requestId) {
   return ref.watch(donorSearchRepositoryProvider).getIncomingRequest(requestId);
