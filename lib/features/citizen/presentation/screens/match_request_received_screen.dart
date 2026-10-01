@@ -44,7 +44,7 @@ class _MatchRequestReceivedScreenState
     };
     try {
       await ref
-          .read(donorRepositoryProvider)
+          .read(donorSearchRepositoryProvider)
           .respondToRequest(widget.requestId, status);
       if (!mounted) return;
       final label = switch (action) {

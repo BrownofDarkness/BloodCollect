@@ -15,7 +15,7 @@ class CitizenHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(citizenProfileProvider);
+    final profileAsync = ref.watch(citizenAccountProvider);
     final campaignsAsync = ref.watch(upcomingCampaignsProvider);
 
     return Scaffold(
@@ -23,7 +23,7 @@ class CitizenHomeScreen extends ConsumerWidget {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            ref.invalidate(citizenProfileProvider);
+            ref.invalidate(citizenAccountProvider);
             ref.invalidate(upcomingCampaignsProvider);
           },
           child: ListView(
