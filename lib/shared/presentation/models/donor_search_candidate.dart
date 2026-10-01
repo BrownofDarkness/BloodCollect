@@ -1,11 +1,11 @@
 import '../../../core/constants/app_enums.dart';
 
 /// Projection de présentation pour l'écran "Donneurs potentiels".
-/// Ce n'est PAS une collection Firestore — c'est une combinaison
-/// AppUser (anonymisé) + une distance mockée (cf. commune_distances.dart,
-/// Option A). En Partie 2, le repository Firestore réel devra construire
-/// cet objet à partir d'une requête sur `users` + le calcul de distance
-/// qui sera finalement choisi par l'équipe.
+///
+/// Ce n'est pas une collection Firestore : c'est un profil anonymisé
+/// accompagné de sa distance au demandeur, la distance étant calculée depuis
+/// le centroïde de la commune (`city_reference.dart`) tant que le citoyen
+/// n'a pas partagé sa position GPS.
 class DonorSearchCandidate {
   const DonorSearchCandidate({
     required this.donorId,

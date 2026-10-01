@@ -281,6 +281,43 @@ async function seedRequests(donorUid) {
   console.log(`  ${REQUESTERS.length} demandes de mobilisation`);
 }
 
+
+/// Supprime les documents de test.
+///
+/// Ne passe pas par les reponses du serveur : les batches ont une limite, et
+/// les centres seedes sont Explicitement des documents sans proprietaire, donc
+/// rien d'autre ne doit etre touche.
+async function purge() {
+  const PREFIX = 'seed_';
+  const COLLECTIONS = [
+    'blood_centers',
+    'blood_stock_lots',
+    'campaigns',
+    'donor_match_requests',
+  ];
+
+  for (const name of COLLECTIONS) {
+    const snapshot = await db.collection(name).get();
+    const doomed = snapshot.docs.filter((d) => d.id.startsWith(PREFIX));
+    if (!doomed.length) {
+      console.log(`  ${name} : rien a supprimer`);
+      continue;
+    }
+    if (dryRun) {
+      console.log(`  ${name} : ${doomed.length} document(s) seraient supprimes`);
+      continue;
+    }
+
+    // Suppression par lot de 400, la limite de l'API.
+    for (let i = 0; i < doomed.length; i += 400) {
+      const batch = db.batch();
+      for (const doc of doomed.slice(i, i + 400)) batch.delete(doc.ref);
+      await batch.commit();
+    }
+    console.log(`  ${name} : ${doomed.length} document(s) supprimes`);
+  }
+}
+
 // Les sections sont nommées ici plutôt qu'appelées ensequence pour que
 // --only=centres fonctionne : le nom dans la commande est celui du libellé.
 const SECTIONS = [
@@ -289,6 +326,21 @@ const SECTIONS = [
   ['campaigns', seedCampaigns],
   ...(DONOR_UID ? [['demandes', () => seedRequests(DONOR_UID)]] : []),
 ];
+
+const PURGE = process.argv.includes('--purge');
+
+if (PURGE) {
+  console.log(
+    dryRun ? 'Simulation (--dry-run), rien n’est supprime :' : 'Suppression des données de test :',
+  );
+  await purge();
+  console.log(
+    dryRun
+      ? '\nSimulation terminee. Relance sans --dry-run pour supprimer.'
+      : '\nDonnees de test supprimees.',
+  );
+  process.exit(0);
+}
 
 if (!DONOR_UID && (!only || only.includes('demandes'))) {
   console.error(

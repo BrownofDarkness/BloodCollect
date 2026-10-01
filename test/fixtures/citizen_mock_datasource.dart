@@ -1,16 +1,18 @@
 import 'package:blood_collect/core/constants/app_enums.dart';
 import 'package:blood_collect/shared/domain/entities/entities.dart';
-
 import 'package:blood_collect/shared/domain/value_objects/city_reference.dart';
+
 import 'citizen_records_fixture.dart';
 
 /// Source de données de test pour le module Citoyen.
 ///
 /// Implémente l'accès en lecture/écriture attendu des contrats de
 /// `domain/repositories/`, sur des enregistrements en mémoire. Le stock est
-/// mutable en mémoire pour que « Je participe » et « Annuler » produisent un
-/// effet visible sans backend. Voir `data/mock/README.md` pour la stratégie de
-/// remplacement par Firestore.
+/// mutable pour que « Je participe » et « Annuler » produisent un effet visible
+/// sans backend.
+///
+/// Cette classe ne sert qu'aux tests. En production, les mêmes contrats sont
+/// implémentés par les datasources Firestore du module `data/datasources/`.
 class CitizenMockDataSource {
   CitizenMockDataSource();
 
