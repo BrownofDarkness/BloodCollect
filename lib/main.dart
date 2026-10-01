@@ -14,17 +14,30 @@ Future<void> main() async {
   runApp(const ProviderScope(child: BloodCollectApp()));
 }
 
-class BloodCollectApp extends ConsumerWidget {
+
+class BloodCollectApp extends ConsumerStatefulWidget {
   const BloodCollectApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BloodCollectApp> createState() => _BloodCollectAppState();
+}
+
+class _BloodCollectAppState extends ConsumerState<BloodCollectApp> {
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
-    return MaterialApp.router(
-      title: 'BloodCollect',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      routerConfig: router,
+    return GestureDetector(
+      onTap: hideKeyboard,
+      child: MaterialApp.router(
+        title: 'BloodCollect',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        routerConfig: router,
+      ),
     );
+  }
+
+  void hideKeyboard() {
+    FocusScope.of(context).requestFocus(FocusNode());
   }
 }
