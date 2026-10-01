@@ -71,7 +71,8 @@ void main() {
     // toImage fait de l'asynchrone hors de la boucle de rendu : sans
     // runAsync le test se bloque sur la capture.
     final boundary =
-        boundaryKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
     await tester.runAsync(() async {
       final image = await boundary.toImage(pixelRatio: 3);
       // ignore: avoid_print
@@ -83,16 +84,26 @@ void main() {
     });
   }
 
-  testWidgets('accueil', (t) => capture(t, '1_accueil', const CitizenHomeScreen()));
+  testWidgets(
+    'accueil',
+    (t) => capture(t, '1_accueil', const CitizenHomeScreen()),
+  );
 
-  testWidgets('donneurs recherche', (t) => capture(t, '2_donneurs', const DonorSearchScreen()));
+  testWidgets(
+    'donneurs recherche',
+    (t) => capture(t, '2_donneurs', const DonorSearchScreen()),
+  );
 
   testWidgets('donneurs resultats', (t) async {
     final filters = DonorSearchFilters(
       bloodType: BloodType.oPos,
       communes: const {'Treichville', 'Marcory'},
     );
-    await capture(t, '3_donneurs_resultats', DonorResultsScreen(filters: filters));
+    await capture(
+      t,
+      '3_donneurs_resultats',
+      DonorResultsScreen(filters: filters),
+    );
   });
 
   testWidgets('demande envoyee', (t) async {
@@ -105,14 +116,22 @@ void main() {
   });
 
   testWidgets('demande recue', (t) async {
-    await capture(t, '5_demande_recue',
-        const MatchRequestReceivedScreen(requestId: 'req_hc_1'));
+    await capture(
+      t,
+      '5_demande_recue',
+      const MatchRequestReceivedScreen(requestId: 'req_hc_1'),
+    );
     // ignore: avoid_print
-    print('TEXTE = '
-        '${find.text('Demande reçue', skipOffstage: false).evaluate().length}');
+    print(
+      'TEXTE = '
+      '${find.text('Demande reçue', skipOffstage: false).evaluate().length}',
+    );
   });
 
-  testWidgets('sang', (t) => capture(t, '6_sang', const BloodAvailabilityScreen()));
+  testWidgets(
+    'sang',
+    (t) => capture(t, '6_sang', const BloodAvailabilityScreen()),
+  );
 
   testWidgets('donner', (t) => capture(t, '8_donner', const DonateScreen()));
 
