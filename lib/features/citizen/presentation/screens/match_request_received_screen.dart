@@ -6,7 +6,10 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../widgets/back_control.dart';
 import '../../../../core/constants/app_enums.dart';
+import '../../../../core/utils/date_utils.dart';
+import '../../../../core/utils/distance_utils.dart';
 import '../../data/mock/commune_distances.dart';
+import '../../data/mock/mock_geography.dart';
 import '../../../../shared/presentation/models/enum_labels.dart';
 import '../../../../shared/presentation/widgets/app_snackbar.dart';
 import '../../../../shared/presentation/widgets/person_badge.dart';
@@ -76,7 +79,16 @@ class _MatchRequestReceivedScreenState
         elevation: 0,
         automaticallyImplyLeading: false,
         leading: BackControl(onBack: () => context.go(AppRoutes.citizenHome)),
-        title: const PersonBadge(label: 'Vous êtes donneur'),
+        // La pastille de contexte est à droite, comme sur les autres écrans
+        // du parcours personnes.
+        title: const SizedBox.shrink(),
+        titleSpacing: 0,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: PersonBadge(label: 'Vous êtes donneur'),
+          ),
+        ],
       ),
       body: requestAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -175,7 +187,7 @@ class _MatchRequestReceivedScreenState
                           _InfoRow(
                             icon: Icons.location_on_outlined,
                             text:
-                                '${requester.commune} · à environ ${distanceKm.toStringAsFixed(1)} km',
+                                '${requester.commune} $middleDot ${formatApproximateDistanceKm(distanceKm)}',
                           ),
                           _InfoRow(
                             icon: Icons.priority_high,
@@ -210,19 +222,38 @@ class _MatchRequestReceivedScreenState
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.ligne.withValues(alpha: 0.4),
+                        color: AppColors.encart,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Icons.shield_outlined, size: 20),
                           SizedBox(width: 10),
                           Expanded(
-                            child: Text(
-                              "Accepter ne veut pas dire donner tout de suite. Le don se fait "
-                              "uniquement dans un centre de transfusion agréé, après vérification "
-                              "de votre éligibilité.",
-                              style: TextStyle(fontSize: 13),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Accepter ne veut pas dire donner tout de suite.',
+                                  style: TextStyle(
+                                    color: AppColors.encre,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                SizedBox(height: 6),
+                                Text(
+                                  "Le don se fait uniquement dans un centre de "
+                                  "transfusion agréé, après vérification de votre "
+                                  "éligibilité.",
+                                  style: TextStyle(
+                                    color: AppColors.slate,
+                                    fontSize: 13,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -234,9 +265,14 @@ class _MatchRequestReceivedScreenState
                       error: (_, _) => const SizedBox.shrink(),
                       data: (center) {
                         if (center == null) return const SizedBox.shrink();
-                        final centerDistance = CommuneDistances.forCommune(
-                          center.commune,
-                          seedKey: center.id,
+                        // Distance réelle depuis la commune du citoyen : c'est
+                        // la même mesure que celle affichée dans l'onglet Sang,
+                        // donc le centre proposé ici est à la distance que le
+                        // citoyen a déjà vue.
+                        final centerDistance = distanceInKm(
+                          mockCommuneCentroids[requester.commune] ??
+                              mockDefaultOrigin,
+                          center.location,
                         );
                         return Container(
                           padding: const EdgeInsets.all(14),
@@ -264,7 +300,7 @@ class _MatchRequestReceivedScreenState
                                       ),
                                     ),
                                     Text(
-                                      '${center.name} · ${centerDistance.toStringAsFixed(1)} km',
+                                      '${center.name} $middleDot ${formatDistanceKm(centerDistance)}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -285,10 +321,25 @@ class _MatchRequestReceivedScreenState
                         onPressed: isBusy
                             ? null
                             : () => _respond(_Action.accept),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.bleu,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: AppColors.ligne,
+                          minimumSize: const Size(double.infinity, 52),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                         icon: _pendingAction == _Action.accept
                             ? const _ButtonSpinner()
                             : const Icon(Icons.check),
-                        label: const Text('Accepter'),
+                        label: const Text(
+                          'Accepter',
+                          style: TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -298,9 +349,27 @@ class _MatchRequestReceivedScreenState
                         onPressed: isBusy
                             ? null
                             : () => _respond(_Action.unavailable),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: AppColors.surface,
+                          foregroundColor: AppColors.encre,
+                          minimumSize: const Size(double.infinity, 52),
+                          side: const BorderSide(
+                            color: AppColors.ligne,
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                         child: _pendingAction == _Action.unavailable
                             ? const _ButtonSpinner(color: AppColors.encre)
-                            : const Text('Je suis indisponible pour le moment'),
+                            : const Text(
+                                'Je suis indisponible pour le moment',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -314,7 +383,13 @@ class _MatchRequestReceivedScreenState
                         ),
                         child: _pendingAction == _Action.decline
                             ? const _ButtonSpinner(color: AppColors.rouge)
-                            : const Text('Refuser'),
+                            : const Text(
+                                'Refuser',
+                                style: TextStyle(
+                                  fontSize: 15.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                       ),
                     ),
                   ],

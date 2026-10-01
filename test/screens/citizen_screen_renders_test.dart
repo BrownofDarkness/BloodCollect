@@ -63,7 +63,7 @@ void main() {
     // n'utilise pas pumpAndSettle : un indicateur de chargement tourne
     // indéfiniment et la boucle ne se terminerait jamais.
     await tester.pump();
-    for (final step in [200, 400, 600, 800, 1000, 1200]) {
+    for (final step in [200, 400, 600, 800, 1000, 1200, 1500, 2000, 2500]) {
       await tester.pump(Duration(milliseconds: step));
     }
 
@@ -73,6 +73,8 @@ void main() {
         boundaryKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
     await tester.runAsync(() async {
       final image = await boundary.toImage(pixelRatio: 3);
+      // ignore: avoid_print
+      print('capture $name');
       final data = await image.toByteData(format: ui.ImageByteFormat.png);
       File(
         '${outputDir.path}/$name.png',
@@ -92,7 +94,13 @@ void main() {
     await capture(t, '3_donneurs_resultats', DonorResultsScreen(filters: filters));
   });
 
-  testWidgets('demande recue', (t) => capture(t, '5_demande_recue', const MatchRequestReceivedScreen(requestId: 'mock_incoming_hc')));
+  testWidgets('demande recue', (t) async {
+    await capture(t, '5_demande_recue',
+        const MatchRequestReceivedScreen(requestId: 'req_hc_1'));
+    // ignore: avoid_print
+    print('TEXTE = '
+        '${find.text('Demande reçue', skipOffstage: false).evaluate().length}');
+  });
 
   testWidgets('sang', (t) => capture(t, '6_sang', const BloodAvailabilityScreen()));
 
