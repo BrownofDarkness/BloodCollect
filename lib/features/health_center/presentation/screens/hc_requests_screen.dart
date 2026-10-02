@@ -24,7 +24,7 @@ enum _RequestsTab {
     return switch (this) {
       // Une demande orientée reste à suivre : le besoin n'est pas couvert.
       _RequestsTab.ongoing => progress.isOngoing,
-      _RequestsTab.processed => progress.isDecision && !progress.isOngoing,
+      _RequestsTab.processed => progress.isProcessed,
       _RequestsTab.history => progress == RequestProgress.cancelled ||
           progress == RequestProgress.expired,
     };

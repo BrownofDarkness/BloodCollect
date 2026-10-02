@@ -19,6 +19,9 @@ enum RequestProgress {
         _ => false,
       };
 
+  /// Décision rendue et demande close (approuvée, partielle ou refusée).
+  bool get isProcessed => isDecision && !isOngoing;
+
   /// Le centre de transfusion a rendu sa décision.
   bool get isDecision => switch (this) {
         approved || partial || refused || oriented => true,

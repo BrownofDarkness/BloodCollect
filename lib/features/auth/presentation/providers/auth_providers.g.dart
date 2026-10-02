@@ -171,6 +171,40 @@ final class AuthStateProvider
 
 String _$authStateHash() => r'd24b8b997b98cd8aa79a826dbb910b27b448154c';
 
+@ProviderFor(currentAppUser)
+final currentAppUserProvider = CurrentAppUserProvider._();
+
+final class CurrentAppUserProvider
+    extends
+        $FunctionalProvider<AsyncValue<AppUser?>, AppUser?, Stream<AppUser?>>
+    with $FutureModifier<AppUser?>, $StreamProvider<AppUser?> {
+  CurrentAppUserProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentAppUserProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentAppUserHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<AppUser?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<AppUser?> create(Ref ref) {
+    return currentAppUser(ref);
+  }
+}
+
+String _$currentAppUserHash() => r'442589a46ad80a1beee4fe0335c251cc0e92f04c';
+
 @ProviderFor(currentUserRole)
 final currentUserRoleProvider = CurrentUserRoleProvider._();
 

@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/data/repositories/center_repository_impl.dart';
 import '../../../../shared/data/repositories/user_repository_impl.dart';
+import '../../../../shared/domain/entities/app_user.dart';
 import '../../../../shared/domain/repositories/center_repository.dart';
 import '../../../../shared/domain/repositories/user_repository.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -23,6 +24,17 @@ CenterRepository centerRepository(Ref ref) => CenterRepositoryImpl();
 @riverpod
 Stream<AuthUser?> authState(Ref ref) {
   return ref.watch(authRepositoryProvider).authStateChanges();
+}
+
+// Profil users du connecté en temps réel (null si déconnecté ou absent).
+@riverpod
+Stream<AppUser?> currentAppUser(Ref ref) async* {
+  final user = await ref.watch(authStateProvider.future);
+  if (user == null) {
+    yield null;
+    return;
+  }
+  yield* ref.watch(userRepositoryProvider).watchById(user.id);
 }
 
 // Rôle du connecté en temps réel : suit la création du doc users, donc pas de null figé pendant les écritures d'inscription.

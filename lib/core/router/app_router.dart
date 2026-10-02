@@ -20,6 +20,7 @@ import '../../features/citizen/presentation/screens/citizen_shell.dart';
 import '../../features/health_center/presentation/screens/hc_blood_center_screen.dart';
 import '../../features/health_center/presentation/screens/hc_blood_request_screen.dart';
 import '../../features/health_center/presentation/screens/hc_blood_search_screen.dart';
+import '../../features/health_center/presentation/screens/hc_profile_screen.dart';
 import '../../features/health_center/presentation/screens/hc_requests_screen.dart';
 import '../../features/health_center/presentation/screens/hc_shell.dart';
 
@@ -316,8 +317,7 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.hcProfile,
-              builder: (context, state) =>
-                  const ProfileScreen(title: 'Profil'),
+              builder: (context, state) => const HcProfileScreen(),
             ),
           ]),
         ],
