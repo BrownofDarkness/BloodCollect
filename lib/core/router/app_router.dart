@@ -295,9 +295,9 @@ GoRouter appRouter(Ref ref) {
           ),
         ],
       ),
-
+      
       GoRoute(
-        path: AppRoutes.citizenIncoming,
+        path: '${AppRoutes.citizenIncoming}/${AppRoutes.citizenIncomingRequest}',
         builder: (context, state) => MatchRequestReceivedScreen(
           requestId: state.pathParameters['requestId'] ?? '',
         ),
