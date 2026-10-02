@@ -157,8 +157,9 @@ class _CenterDetails extends ConsumerWidget {
         ),
         const SizedBox(height: 20),
         ElevatedButton.icon(
-          onPressed: () => context.go(
-            AppRoutes.hcRequestNewPath(
+          // push : le retour du formulaire ramène à cette fiche.
+          onPressed: () => context.push(
+            AppRoutes.hcBloodRequestPath(
               bloodCenterId: center.id,
               bloodType: bloodType,
             ),

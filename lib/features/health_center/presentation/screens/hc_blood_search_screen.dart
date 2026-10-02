@@ -54,8 +54,8 @@ class _HcBloodSearchScreenState extends ConsumerState<HcBloodSearchScreen> {
   }
 
   void _requestFrom(BloodAvailability availability) {
-    context.go(
-      AppRoutes.hcRequestNewPath(
+    context.push(
+      AppRoutes.hcBloodRequestPath(
         bloodCenterId: availability.center.id,
         bloodType: availability.bloodType,
       ),

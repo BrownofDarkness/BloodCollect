@@ -156,7 +156,7 @@ void main() {
     expect(AppRoutes.hcBloodCenterPath('A'), '/hc/blood/center/A');
     expect(
       Uri.parse(
-        AppRoutes.hcRequestNewPath(
+        AppRoutes.hcBloodRequestPath(
           bloodCenterId: 'A',
           bloodType: BloodType.abNeg,
         ),

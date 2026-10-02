@@ -57,6 +57,54 @@ final class BloodStockRepositoryProvider
 String _$bloodStockRepositoryHash() =>
     r'ddb54fb87e5339ca5e46f2a31ea0ff4e0d115ddc';
 
+@ProviderFor(bloodRequestRepository)
+final bloodRequestRepositoryProvider = BloodRequestRepositoryProvider._();
+
+final class BloodRequestRepositoryProvider
+    extends
+        $FunctionalProvider<
+          BloodRequestRepository,
+          BloodRequestRepository,
+          BloodRequestRepository
+        >
+    with $Provider<BloodRequestRepository> {
+  BloodRequestRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'bloodRequestRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$bloodRequestRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<BloodRequestRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  BloodRequestRepository create(Ref ref) {
+    return bloodRequestRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BloodRequestRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BloodRequestRepository>(value),
+    );
+  }
+}
+
+String _$bloodRequestRepositoryHash() =>
+    r'c790e44a06fd04ea1f1333007097a8805f8213a1';
+
 @ProviderFor(currentHealthCenter)
 final currentHealthCenterProvider = CurrentHealthCenterProvider._();
 
@@ -96,6 +144,48 @@ final class CurrentHealthCenterProvider
 
 String _$currentHealthCenterHash() =>
     r'9983449168031379cea35c9d8120ecb5b903a8f9';
+
+@ProviderFor(healthCenterRequests)
+final healthCenterRequestsProvider = HealthCenterRequestsProvider._();
+
+final class HealthCenterRequestsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<BloodRequest>>,
+          List<BloodRequest>,
+          Stream<List<BloodRequest>>
+        >
+    with
+        $FutureModifier<List<BloodRequest>>,
+        $StreamProvider<List<BloodRequest>> {
+  HealthCenterRequestsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'healthCenterRequestsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$healthCenterRequestsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<BloodRequest>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<BloodRequest>> create(Ref ref) {
+    return healthCenterRequests(ref);
+  }
+}
+
+String _$healthCenterRequestsHash() =>
+    r'440d431808db352a9b11e6aceb122dce4edf848e';
 
 @ProviderFor(verifiedBloodCenters)
 final verifiedBloodCentersProvider = VerifiedBloodCentersFamily._();
