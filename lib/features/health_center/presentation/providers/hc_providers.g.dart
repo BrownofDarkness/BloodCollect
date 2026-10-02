@@ -105,6 +105,177 @@ final class BloodRequestRepositoryProvider
 String _$bloodRequestRepositoryHash() =>
     r'c790e44a06fd04ea1f1333007097a8805f8213a1';
 
+@ProviderFor(donorRepository)
+final donorRepositoryProvider = DonorRepositoryProvider._();
+
+final class DonorRepositoryProvider
+    extends
+        $FunctionalProvider<DonorRepository, DonorRepository, DonorRepository>
+    with $Provider<DonorRepository> {
+  DonorRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'donorRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$donorRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<DonorRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  DonorRepository create(Ref ref) {
+    return donorRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DonorRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DonorRepository>(value),
+    );
+  }
+}
+
+String _$donorRepositoryHash() => r'3d8bac1902de858efb676cc5adeaa58d8364c100';
+
+@ProviderFor(donorMatchRepository)
+final donorMatchRepositoryProvider = DonorMatchRepositoryProvider._();
+
+final class DonorMatchRepositoryProvider
+    extends
+        $FunctionalProvider<
+          DonorMatchRepository,
+          DonorMatchRepository,
+          DonorMatchRepository
+        >
+    with $Provider<DonorMatchRepository> {
+  DonorMatchRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'donorMatchRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$donorMatchRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<DonorMatchRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DonorMatchRepository create(Ref ref) {
+    return donorMatchRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DonorMatchRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DonorMatchRepository>(value),
+    );
+  }
+}
+
+String _$donorMatchRepositoryHash() =>
+    r'1ed3932660e6e75eed890fee554109657276b0f8';
+
+@ProviderFor(donorCandidates)
+final donorCandidatesProvider = DonorCandidatesFamily._();
+
+final class DonorCandidatesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<DonorCandidate>>,
+          List<DonorCandidate>,
+          FutureOr<List<DonorCandidate>>
+        >
+    with
+        $FutureModifier<List<DonorCandidate>>,
+        $FutureProvider<List<DonorCandidate>> {
+  DonorCandidatesProvider._({
+    required DonorCandidatesFamily super.from,
+    required DonorSearchCriteria super.argument,
+  }) : super(
+         retry: null,
+         name: r'donorCandidatesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$donorCandidatesHash();
+
+  @override
+  String toString() {
+    return r'donorCandidatesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<DonorCandidate>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<DonorCandidate>> create(Ref ref) {
+    final argument = this.argument as DonorSearchCriteria;
+    return donorCandidates(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DonorCandidatesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$donorCandidatesHash() => r'512d5ce966686acbc81ce06274e7218b74eea9be';
+
+final class DonorCandidatesFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<DonorCandidate>>,
+          DonorSearchCriteria
+        > {
+  DonorCandidatesFamily._()
+    : super(
+        retry: null,
+        name: r'donorCandidatesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  DonorCandidatesProvider call(DonorSearchCriteria criteria) =>
+      DonorCandidatesProvider._(argument: criteria, from: this);
+
+  @override
+  String toString() => r'donorCandidatesProvider';
+}
+
 @ProviderFor(currentHealthCenter)
 final currentHealthCenterProvider = CurrentHealthCenterProvider._();
 

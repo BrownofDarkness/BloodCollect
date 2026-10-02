@@ -173,7 +173,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'dos-2291');
     await tester.tap(find.text('A+'));
-    await tester.tap(find.byTooltip('Ajouter une poche'));
+    await tester.tap(find.byTooltip('Augmenter'));
     await tester.tap(find.text('Vitale'));
     await tester.enterText(find.byType(TextFormField).last, ' Sous 2 h ');
     await tester.pumpAndSettle();

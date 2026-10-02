@@ -17,6 +17,13 @@ extension RequestProgressStyle on RequestProgress {
         RequestProgress.expired => 'Expirée',
       };
 
+  String get shortLabel => switch (this) {
+        RequestProgress.received => 'Reçue',
+        RequestProgress.processing => 'En cours',
+        RequestProgress.partial => 'Partielle',
+        _ => label,
+      };
+
   IconData get icon => switch (this) {
         RequestProgress.waiting => Icons.schedule_outlined,
         RequestProgress.received => Icons.mark_email_read_outlined,

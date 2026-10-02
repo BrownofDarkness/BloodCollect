@@ -6,6 +6,7 @@ import '../config/backend_config.dart';
 import '../constants/app_enums.dart';
 import '../widgets/placeholder_screen.dart';
 import '../../features/auth/domain/entities/auth_user.dart';
+import '../../shared/domain/entities/donor_search_criteria.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -20,6 +21,10 @@ import '../../features/citizen/presentation/screens/citizen_shell.dart';
 import '../../features/health_center/presentation/screens/hc_blood_center_screen.dart';
 import '../../features/health_center/presentation/screens/hc_blood_request_screen.dart';
 import '../../features/health_center/presentation/screens/hc_blood_search_screen.dart';
+import '../../features/health_center/presentation/screens/hc_donor_contact_screen.dart';
+import '../../features/health_center/presentation/screens/hc_donor_results_screen.dart';
+import '../../features/health_center/presentation/screens/hc_donor_search_screen.dart';
+import '../../features/health_center/presentation/screens/hc_home_screen.dart';
 import '../../features/health_center/presentation/screens/hc_profile_screen.dart';
 import '../../features/health_center/presentation/screens/hc_requests_screen.dart';
 import '../../features/health_center/presentation/screens/hc_shell.dart';
@@ -67,6 +72,39 @@ abstract final class AppRoutes {
           'bloodType': bloodType?.firestoreValue,
         }),
       ).toString();
+
+  static const hcDonorResults = '/hc/donors/results';
+  // Sélection transmise en `extra` (donneurs anonymisés, hors URL).
+  static const hcDonorContact = '/hc/donors/contact';
+
+  static String hcDonorResultsPath(DonorSearchCriteria criteria) => Uri(
+        path: hcDonorResults,
+        queryParameters: {
+          'bloodType': criteria.bloodType.firestoreValue,
+          'city': criteria.city,
+          'commune': criteria.communes,
+          'priority': criteria.priority.firestoreValue,
+          'count': '${criteria.donorCount}',
+        },
+      ).toString();
+
+  /// Lecture inverse de [hcDonorResultsPath] ; null si l'URL est incomplète.
+  static DonorSearchCriteria? donorCriteriaFrom(Uri uri) {
+    final params = uri.queryParameters;
+    final bloodType = BloodType.fromString(params['bloodType']);
+    final priority = Priority.fromString(params['priority']);
+    final count = int.tryParse(params['count'] ?? '');
+    final criteria = (bloodType == null || priority == null || count == null)
+        ? null
+        : DonorSearchCriteria(
+            bloodType: bloodType,
+            city: params['city'] ?? '',
+            communes: uri.queryParametersAll['commune'] ?? const [],
+            priority: priority,
+            donorCount: count,
+          );
+    return criteria != null && criteria.isValid ? criteria : null;
+  }
 
   static Map<String, String>? _query(Map<String, String?> params) {
     final query = {
@@ -269,15 +307,31 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.hcHome,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Accueil'),
+              builder: (context, state) => const HcHomeScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.hcDonors,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Donneurs'),
+              builder: (context, state) => const HcDonorSearchScreen(),
+              routes: [
+                // → AppRoutes.hcDonorResults
+                GoRoute(
+                  path: 'results',
+                  builder: (context, state) => HcDonorResultsScreen(
+                    criteria: AppRoutes.donorCriteriaFrom(state.uri),
+                  ),
+                ),
+                // → AppRoutes.hcDonorContact
+                GoRoute(
+                  path: 'contact',
+                  builder: (context, state) => HcDonorContactScreen(
+                    selection: state.extra is DonorContactSelection
+                        ? state.extra! as DonorContactSelection
+                        : null,
+                  ),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [

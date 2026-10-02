@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
 
-// Champs du formulaire « Demande de sang ».
+// Champs partagés des formulaires « Demande de sang » et « Chercher un
+// donneur ». [accent] suit le code couleur : rouge = sang, bleu = personnes.
 
 /// Grille 4 × 2 de choix du groupe sanguin.
 class BloodTypeGridSelector extends StatelessWidget {
@@ -11,10 +12,12 @@ class BloodTypeGridSelector extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    this.accent = AppColors.rouge,
   });
 
   final BloodType value;
   final ValueChanged<BloodType> onChanged;
+  final Color accent;
 
   static const _columns = 4;
 
@@ -34,6 +37,7 @@ class BloodTypeGridSelector extends StatelessWidget {
                   child: _BloodTypeTile(
                     bloodType: types[j],
                     selected: types[j] == value,
+                    accent: accent,
                     onTap: () => onChanged(types[j]),
                   ),
                 ),
@@ -51,11 +55,13 @@ class _BloodTypeTile extends StatelessWidget {
     required this.bloodType,
     required this.selected,
     required this.onTap,
+    required this.accent,
   });
 
   final BloodType bloodType;
   final bool selected;
   final VoidCallback onTap;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
@@ -63,11 +69,11 @@ class _BloodTypeTile extends StatelessWidget {
       button: true,
       selected: selected,
       child: Material(
-        color: selected ? AppColors.rouge : Colors.white,
+        color: selected ? accent : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: selected ? AppColors.rouge : AppColors.ligne,
+            color: selected ? accent : AppColors.ligne,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -95,7 +101,7 @@ class _BloodTypeTile extends StatelessWidget {
   }
 }
 
-/// Compteur de poches borné entre [min] et [max].
+/// Compteur borné entre [min] et [max] ; [unit] est accordé au pluriel.
 class QuantityStepper extends StatelessWidget {
   const QuantityStepper({
     super.key,
@@ -103,12 +109,14 @@ class QuantityStepper extends StatelessWidget {
     required this.onChanged,
     this.min = 1,
     required this.max,
+    this.unit = 'poche',
   });
 
   final int value;
   final ValueChanged<int> onChanged;
   final int min;
   final int max;
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
@@ -123,12 +131,12 @@ class QuantityStepper extends StatelessWidget {
         children: [
           _StepButton(
             icon: Icons.remove,
-            tooltip: 'Retirer une poche',
+            tooltip: 'Diminuer',
             onPressed: value > min ? () => onChanged(value - 1) : null,
           ),
           Expanded(
             child: Text(
-              '$value poche${value > 1 ? 's' : ''}',
+              '$value $unit${value > 1 ? 's' : ''}',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.encre,
@@ -139,7 +147,7 @@ class QuantityStepper extends StatelessWidget {
           ),
           _StepButton(
             icon: Icons.add,
-            tooltip: 'Ajouter une poche',
+            tooltip: 'Augmenter',
             onPressed: value < max ? () => onChanged(value + 1) : null,
           ),
         ],
@@ -182,10 +190,12 @@ class PrioritySelector extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    this.accent = AppColors.rouge,
   });
 
   final Priority value;
   final ValueChanged<Priority> onChanged;
+  final Color accent;
 
   static String _label(Priority priority) => switch (priority) {
         Priority.normal => 'Normale',
@@ -209,9 +219,7 @@ class PrioritySelector extends StatelessWidget {
                 button: true,
                 selected: priority == value,
                 child: Material(
-                  color: priority == value
-                      ? AppColors.rouge
-                      : Colors.transparent,
+                  color: priority == value ? accent : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(

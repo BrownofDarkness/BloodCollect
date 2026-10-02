@@ -3,13 +3,19 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/data/repositories/blood_request_repository_impl.dart';
 import '../../../../shared/data/repositories/blood_stock_repository_impl.dart';
+import '../../../../shared/data/repositories/donor_match_repository_impl.dart';
+import '../../../../shared/data/repositories/donor_repository_impl.dart';
 import '../../../../shared/domain/entities/blood_availability.dart';
 import '../../../../shared/domain/entities/blood_center.dart';
 import '../../../../shared/domain/entities/blood_request.dart';
 import '../../../../shared/domain/entities/blood_stock_lot.dart';
+import '../../../../shared/domain/entities/donor_candidate.dart';
+import '../../../../shared/domain/entities/donor_search_criteria.dart';
 import '../../../../shared/domain/entities/health_center.dart';
 import '../../../../shared/domain/repositories/blood_request_repository.dart';
 import '../../../../shared/domain/repositories/blood_stock_repository.dart';
+import '../../../../shared/domain/repositories/donor_match_repository.dart';
+import '../../../../shared/domain/repositories/donor_repository.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
 part 'hc_providers.g.dart';
@@ -21,6 +27,22 @@ BloodStockRepository bloodStockRepository(Ref ref) =>
 @riverpod
 BloodRequestRepository bloodRequestRepository(Ref ref) =>
     BloodRequestRepositoryImpl();
+
+@riverpod
+DonorRepository donorRepository(Ref ref) => DonorRepositoryImpl();
+
+@riverpod
+DonorMatchRepository donorMatchRepository(Ref ref) =>
+    DonorMatchRepositoryImpl();
+
+// Écran « Donneurs potentiels » : résultat d'une recherche (non temps réel).
+@riverpod
+Future<List<DonorCandidate>> donorCandidates(
+  Ref ref,
+  DonorSearchCriteria criteria,
+) {
+  return ref.watch(donorRepositoryProvider).search(criteria);
+}
 
 // Fiche du centre de santé connecté en temps réel (null si absente).
 @riverpod

@@ -7,6 +7,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../shared/domain/entities/blood_request.dart';
 import '../providers/hc_providers.dart';
 import 'blood_request_timeline.dart';
+import 'request_progress_pill.dart';
 import 'request_progress_style.dart';
 
 /// Carte d'une demande de sang : besoin, centre destinataire, avancement.
@@ -115,7 +116,7 @@ class BloodRequestCard extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        _ProgressPill(progress: progress),
+                        RequestProgressPill(progress: progress),
                       ],
                     ),
                   ),
@@ -137,42 +138,6 @@ class BloodRequestCard extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ProgressPill extends StatelessWidget {
-  const _ProgressPill({required this.progress});
-
-  final RequestProgress progress;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: progress.background,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(progress.icon, color: progress.color, size: 14),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              progress.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: progress.color,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
