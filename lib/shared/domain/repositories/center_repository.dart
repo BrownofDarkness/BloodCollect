@@ -19,4 +19,16 @@ abstract class CenterRepository {
     required String userId,
     required UserRole role,
   });
+
+  /// Fiche du centre de santé rattaché à un compte (null si absente).
+  Stream<HealthCenter?> watchHealthCenterByUser(String userId);
+
+  /// Fiche d'un centre de transfusion (null si introuvable).
+  Stream<BloodCenter?> watchBloodCenter(String centerId);
+
+  /// Centres de transfusion vérifiés d'une ville, commune facultative.
+  Stream<List<BloodCenter>> watchVerifiedBloodCenters({
+    required String city,
+    String? commune,
+  });
 }

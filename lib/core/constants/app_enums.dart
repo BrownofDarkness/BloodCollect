@@ -33,6 +33,18 @@ enum BloodType {
   oPos,
   oNeg;
 
+  // Ordre d'affichage des maquettes (sélecteurs, grilles).
+  static const displayOrder = [
+    BloodType.oPos,
+    BloodType.oNeg,
+    BloodType.aPos,
+    BloodType.aNeg,
+    BloodType.bPos,
+    BloodType.bNeg,
+    BloodType.abPos,
+    BloodType.abNeg,
+  ];
+
   static BloodType? fromString(String? value) => switch (value) {
         'A+' => BloodType.aPos,
         'A-' => BloodType.aNeg,

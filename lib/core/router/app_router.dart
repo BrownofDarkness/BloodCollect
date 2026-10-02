@@ -17,6 +17,8 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_shell.dart';
 import '../../features/citizen/presentation/screens/citizen_shell.dart';
+import '../../features/health_center/presentation/screens/hc_blood_center_screen.dart';
+import '../../features/health_center/presentation/screens/hc_blood_search_screen.dart';
 import '../../features/health_center/presentation/screens/hc_shell.dart';
 
 part 'app_router.g.dart';
@@ -41,6 +43,35 @@ abstract final class AppRoutes {
   static const hcBlood    = '/hc/blood';
   static const hcRequests = '/hc/requests';
   static const hcProfile  = '/hc/profile';
+  static const hcBloodCenter = '/hc/blood/center/:centerId';
+  static const hcRequestNew  = '/hc/requests/new';
+
+  // [bloodType] : groupe recherché, repris si une demande est lancée ensuite.
+  static String hcBloodCenterPath(String centerId, {BloodType? bloodType}) =>
+      Uri(
+        path: '$hcBlood/center/$centerId',
+        queryParameters: _query({'bloodType': bloodType?.firestoreValue}),
+      ).toString();
+
+  static String hcRequestNewPath({
+    String? bloodCenterId,
+    BloodType? bloodType,
+  }) =>
+      Uri(
+        path: hcRequestNew,
+        queryParameters: _query({
+          'bloodCenterId': bloodCenterId,
+          'bloodType': bloodType?.firestoreValue,
+        }),
+      ).toString();
+
+  static Map<String, String>? _query(Map<String, String?> params) {
+    final query = {
+      for (final e in params.entries)
+        if (e.value != null) e.key: e.value!,
+    };
+    return query.isEmpty ? null : query;
+  }
 
   static const bcHome      = '/bc/home';
   static const bcStocks    = '/bc/stocks';
@@ -249,8 +280,19 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.hcBlood,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Sang'),
+              builder: (context, state) => const HcBloodSearchScreen(),
+              routes: [
+                // → AppRoutes.hcBloodCenter
+                GoRoute(
+                  path: 'center/:centerId',
+                  builder: (context, state) => HcBloodCenterScreen(
+                    centerId: state.pathParameters['centerId']!,
+                    bloodType: BloodType.fromString(
+                      state.uri.queryParameters['bloodType'],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [
@@ -258,6 +300,14 @@ GoRouter appRouter(Ref ref) {
               path: AppRoutes.hcRequests,
               builder: (context, state) =>
                   const PlaceholderScreen(title: 'Demandes'),
+              routes: [
+                // → AppRoutes.hcRequestNew
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) =>
+                      const PlaceholderScreen(title: 'Nouvelle demande'),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [

@@ -17,6 +17,11 @@ class AppColors {
   static const Color limite       = Color(0xFFB45309); // amber
   static const Color indisponible = Color(0xFF9F1239); // rouge
 
+  // Fonds des pastilles de statut
+  static const Color disponibleLight   = Color(0xFFDCFCE7);
+  static const Color limiteLight       = Color(0xFFFFEDD5);
+  static const Color indisponibleLight = Color(0xFFFFE4E6);
+
   // Priorités
   static const Color priorityNormal   = Color(0xFF6B7280); // gris
   static const Color priorityElevated = Color(0xFFB45309); // amber
