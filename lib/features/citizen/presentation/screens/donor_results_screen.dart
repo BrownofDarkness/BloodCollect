@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -53,7 +55,10 @@ class DonorResultsScreen extends ConsumerWidget {
                   runSpacing: 8,
                   children: [
                     _FilterPill(text: filters.bloodType?.label ?? ''),
-                    _FilterPill(text: filters.communes.join(', ')),
+                    _FilterPill(
+                      text: filters.communes.take(3).join(', ') +
+                          (filters.communes.length > 3 ? '...' : ''),
+                    ),
                     _FilterPill(
                       text: 'Urgence ${filters.priority.label.toLowerCase()}',
                     ),
@@ -133,15 +138,18 @@ class DonorResultsScreen extends ConsumerWidget {
 
                 return ListView.separated(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                  itemCount: donors.length + 1,
+                  itemCount: min(donors.length + 1, 51),  // ✅ Max 50 donors affichés
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, i) {
                     if (i == 0) {
-                      return Text(
-                        '${donors.length} donneur${donors.length > 1 ? 's' : ''} correspondent à votre recherche',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
+                      return SingleChildScrollView(  // ✅ Permet au texte descroller
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          '${donors.length} donneur${donors.length > 1 ? 's' : ''} correspondent à votre recherche',
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
                         ),
                       );
                     }

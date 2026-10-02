@@ -68,11 +68,15 @@ class BloodCenterAvailabilityCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      '${center.commune} $middleDot${formatDistanceKm(entry.distanceKm)}',
-                      style: const TextStyle(
-                        color: AppColors.slate,
-                        fontSize: 13.5,
+                    Flexible(
+                      child: Text(
+                        "${center.commune} $middleDot${formatDistanceKm(entry.distanceKm)}",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.slate,
+                          fontSize: 13.5,
+                        ),
                       ),
                     ),
                   ],

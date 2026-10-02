@@ -199,8 +199,20 @@ class _LocationFilters extends ConsumerWidget {
             value: communes.contains(filter.commune) ? filter.commune : null,
             hint: 'Toutes les communes',
             items: [
-              for (final commune in communes)
-                DropdownMenuItem(value: commune, child: Text(commune)),
+              for (final commune in communes.take(100))  // ✅ Max 100 communes
+                DropdownMenuItem(
+                  value: commune,
+                  child: Text(
+                    commune,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,  // ✅ Pas de débordement
+                  ),
+                ),
+              if (communes.length > 100)
+                DropdownMenuItem(
+                  enabled: false,
+                  child: Text('... et ${communes.length - 100} autres'),
+                ),
             ],
             onChanged: communes.isEmpty ? null : notifier.selectCommune,
           ),
