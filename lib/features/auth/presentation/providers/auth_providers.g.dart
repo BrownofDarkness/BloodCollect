@@ -171,21 +171,47 @@ final class AuthStateProvider
 
 String _$authStateHash() => r'd24b8b997b98cd8aa79a826dbb910b27b448154c';
 
-/// Rôle du connecté en temps réel : suit la création du doc users,
-/// donc pas de null figé pendant les écritures d'inscription.
+@ProviderFor(currentAppUser)
+final currentAppUserProvider = CurrentAppUserProvider._();
+
+final class CurrentAppUserProvider
+    extends
+        $FunctionalProvider<AsyncValue<AppUser?>, AppUser?, Stream<AppUser?>>
+    with $FutureModifier<AppUser?>, $StreamProvider<AppUser?> {
+  CurrentAppUserProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentAppUserProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentAppUserHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<AppUser?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<AppUser?> create(Ref ref) {
+    return currentAppUser(ref);
+  }
+}
+
+String _$currentAppUserHash() => r'442589a46ad80a1beee4fe0335c251cc0e92f04c';
 
 @ProviderFor(currentUserRole)
 final currentUserRoleProvider = CurrentUserRoleProvider._();
-
-/// Rôle du connecté en temps réel : suit la création du doc users,
-/// donc pas de null figé pendant les écritures d'inscription.
 
 final class CurrentUserRoleProvider
     extends
         $FunctionalProvider<AsyncValue<UserRole?>, UserRole?, Stream<UserRole?>>
     with $FutureModifier<UserRole?>, $StreamProvider<UserRole?> {
-  /// Rôle du connecté en temps réel : suit la création du doc users,
-  /// donc pas de null figé pendant les écritures d'inscription.
   CurrentUserRoleProvider._()
     : super(
         from: null,
@@ -213,14 +239,8 @@ final class CurrentUserRoleProvider
 
 String _$currentUserRoleHash() => r'a1ebe213b18170654bf434c09f3b47f19f979dc3';
 
-/// Statut de vérification du centre connecté en temps réel
-/// (null si non concerné). Une validation console bascule l'app en direct.
-
 @ProviderFor(centerVerificationStatus)
 final centerVerificationStatusProvider = CenterVerificationStatusProvider._();
-
-/// Statut de vérification du centre connecté en temps réel
-/// (null si non concerné). Une validation console bascule l'app en direct.
 
 final class CenterVerificationStatusProvider
     extends
@@ -232,8 +252,6 @@ final class CenterVerificationStatusProvider
     with
         $FutureModifier<VerificationStatus?>,
         $StreamProvider<VerificationStatus?> {
-  /// Statut de vérification du centre connecté en temps réel
-  /// (null si non concerné). Une validation console bascule l'app en direct.
   CenterVerificationStatusProvider._()
     : super(
         from: null,
