@@ -37,6 +37,11 @@ class AppUser {
 
   bool get isCitizen => role == UserRole.citizen;
 
+  // Les comptes centre enregistrent le nom complet du responsable dans
+  // les deux champs : on évite de l'afficher en double.
+  String get fullName =>
+      firstName == lastName ? firstName : '$firstName $lastName'.trim();
+
   AppUser copyWith({
     String? id,
     String? email,

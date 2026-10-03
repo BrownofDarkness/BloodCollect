@@ -7,6 +7,20 @@ abstract final class Validators {
   static final RegExp _special =
       RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\\/\[\];'"'"'+=~` ]');
 
+  // Référence interne sans espace : empêche de saisir un nom de patient.
+  static final RegExp _patientReference =
+      RegExp(r'^[A-Za-z0-9][A-Za-z0-9._/-]{1,29}$');
+
+  /// Référence de dossier patient : 2 à 30 caractères, sans espace.
+  static String? patientReference(String? value) {
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return 'La référence du dossier est requise.';
+    if (!_patientReference.hasMatch(v)) {
+      return 'Référence invalide (ex. DOS-2291, sans espace ni nom).';
+    }
+    return null;
+  }
+
   static String? email(String? value) {
     final v = (value ?? '').trim();
     if (v.isEmpty) return 'L’adresse email est requise.';

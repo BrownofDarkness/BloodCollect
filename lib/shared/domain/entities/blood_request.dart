@@ -1,5 +1,34 @@
 import '../../../core/constants/app_enums.dart';
 
+// Avancement d'une demande vu par le centre de santé, déduit du statut
+// et des horodatages. Non persisté : pas de valeur Firestore.
+enum RequestProgress {
+  waiting,
+  received,
+  processing,
+  approved,
+  partial,
+  refused,
+  oriented,
+  cancelled,
+  expired;
+
+  /// Encore à suivre : aucune décision finale n'a clos la demande.
+  bool get isOngoing => switch (this) {
+        waiting || received || processing || oriented => true,
+        _ => false,
+      };
+
+  /// Décision rendue et demande close (approuvée, partielle ou refusée).
+  bool get isProcessed => isDecision && !isOngoing;
+
+  /// Le centre de transfusion a rendu sa décision.
+  bool get isDecision => switch (this) {
+        approved || partial || refused || oriented => true,
+        _ => false,
+      };
+}
+
 // collection --- blood_requests/{requestId} (collection centrale du Blood Route)
 class BloodRequest {
   const BloodRequest({
@@ -48,6 +77,32 @@ class BloodRequest {
   final DateTime? expiresAt;
 
   int get remainingUnits => quantityNeeded - quantityFulfilled;
+
+  RequestProgress get progress => switch (status) {
+        RequestStatus.pending => receivedAt == null
+            ? RequestProgress.waiting
+            : RequestProgress.received,
+        RequestStatus.routing => RequestProgress.processing,
+        RequestStatus.fulfilled => RequestProgress.approved,
+        RequestStatus.partiallyFulfilled => RequestProgress.partial,
+        RequestStatus.oriented => RequestProgress.oriented,
+        // Pas de statut « refusée » : une annulation traitée par le centre
+        // de transfusion (processedAt renseigné) est lue comme un refus.
+        RequestStatus.cancelled => processedAt == null
+            ? RequestProgress.cancelled
+            : RequestProgress.refused,
+        RequestStatus.expired => RequestProgress.expired,
+      };
+
+  /// Le centre de transfusion a pris connaissance de la demande.
+  bool get isReceived =>
+      receivedAt != null ||
+      progress == RequestProgress.processing ||
+      progress.isDecision;
+
+  /// Heure de la décision, null tant qu'elle n'est pas rendue.
+  DateTime? get decidedAt =>
+      progress.isDecision ? (processedAt ?? updatedAt) : null;
 
   BloodRequest copyWith({
     String? id,

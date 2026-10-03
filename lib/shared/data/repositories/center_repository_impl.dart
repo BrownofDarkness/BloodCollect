@@ -128,4 +128,53 @@ class CenterRepositoryImpl implements CenterRepository {
       );
     });
   }
+
+  @override
+  Stream<HealthCenter?> watchHealthCenterByUser(String userId) {
+    return _firestore
+        .collection(FirestoreCollections.healthCenters)
+        .where('userId', isEqualTo: userId)
+        .limit(1)
+        .snapshots()
+        .map((query) {
+      if (query.docs.isEmpty) return null;
+      final doc = query.docs.first;
+      return HealthCenterModel.fromMap(doc.data(), doc.id);
+    });
+  }
+
+  @override
+  Stream<BloodCenter?> watchBloodCenter(String centerId) {
+    return _firestore
+        .collection(FirestoreCollections.bloodCenters)
+        .doc(centerId)
+        .snapshots()
+        .map((snap) {
+      if (!snap.exists) return null;
+      return BloodCenterModel.fromMap(snap.data()!, snap.id);
+    });
+  }
+
+  @override
+  Stream<List<BloodCenter>> watchVerifiedBloodCenters({
+    required String city,
+    String? commune,
+  }) {
+    // Égalités uniquement : aucun index composite à déclarer.
+    var query = _firestore
+        .collection(FirestoreCollections.bloodCenters)
+        .where('city', isEqualTo: city)
+        .where(
+          'verificationStatus',
+          isEqualTo: VerificationStatus.verified.firestoreValue,
+        );
+    if (commune != null) {
+      query = query.where('commune', isEqualTo: commune);
+    }
+    return query.snapshots().map(
+          (snap) => snap.docs
+              .map((doc) => BloodCenterModel.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
+  }
 }
