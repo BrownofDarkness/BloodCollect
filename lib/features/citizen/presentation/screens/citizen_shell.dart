@@ -3,6 +3,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 
+/// Coquille de navigation du module Citoyen : 5 onglets, une pile conservée
+/// par onglet (StatefulShellRoute.indexedStack).
+///
+/// L'onglet actif passe au rouge sans pastille d'arrière-plan
 class CitizenShell extends StatelessWidget {
   const CitizenShell({super.key, required this.navigationShell});
 
@@ -16,17 +20,17 @@ class CitizenShell extends StatelessWidget {
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onTap,
         backgroundColor: Colors.white,
-        indicatorColor: AppColors.bleuLight,
+        indicatorColor: Colors.transparent,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: AppColors.bleu),
+            selectedIcon: Icon(Icons.home, color: AppColors.rouge),
             label: 'Accueil',
           ),
           NavigationDestination(
             icon: Icon(Icons.search_outlined),
-            selectedIcon: Icon(Icons.search, color: AppColors.bleu),
+            selectedIcon: Icon(Icons.search, color: AppColors.rouge),
             label: 'Donneurs',
           ),
           NavigationDestination(
@@ -41,7 +45,7 @@ class CitizenShell extends StatelessWidget {
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: AppColors.bleu),
+            selectedIcon: Icon(Icons.person, color: AppColors.rouge),
             label: 'Profil',
           ),
         ],

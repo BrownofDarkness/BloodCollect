@@ -1,0 +1,13 @@
+{
+  "name": "bloodcollect-outils",
+  "private": true,
+  "type": "module",
+  "description": "Scripts d'outillage hors application Flutter. Aucun de ces scripts n'entre dans le bundle web.",
+  "scripts": {
+    "seed": "node tool/seed_test_data.mjs",
+    "seed:dry": "node tool/seed_test_data.mjs --dry-run"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}

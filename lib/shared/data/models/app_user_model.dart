@@ -41,19 +41,20 @@ class AppUserModel extends AppUser {
   }
 
   Map<String, dynamic> toMap() => {
-        'email': email,
-        'firstName': firstName,
-        'lastName': lastName,
-        'phone': phone,
-        'role': role.firestoreValue,
-        'bloodType': bloodType?.firestoreValue,
-        'city': city,
-        'commune': commune,
-        'isAvailableToDonate': isAvailableToDonate,
-        'lastDonationDate':
-            lastDonationDate == null ? null : dateToTs(lastDonationDate!),
-        'fcmToken': fcmToken,
-        'createdAt': dateToTs(createdAt),
-        'updatedAt': dateToTs(updatedAt),
-      };
+    'email': email,
+    'firstName': firstName,
+    'lastName': lastName,
+    'phone': phone,
+    'role': role.firestoreValue,
+    'bloodType': bloodType?.firestoreValue,
+    'city': city,
+    'commune': commune,
+    'isAvailableToDonate': isAvailableToDonate,
+    'lastDonationDate': lastDonationDate == null
+        ? null
+        : dateToTs(lastDonationDate!),
+    'fcmToken': fcmToken,
+    'createdAt': dateToTs(createdAt),
+    'updatedAt': dateToTs(updatedAt),
+  };
 }

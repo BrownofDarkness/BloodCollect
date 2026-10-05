@@ -58,8 +58,9 @@ class DonorMatchRequest {
     return DonorMatchRequest(
       id: id ?? this.id,
       requesterId: requesterId ?? this.requesterId,
-      bloodRequestId:
-          bloodRequestId != null ? bloodRequestId() : this.bloodRequestId,
+      bloodRequestId: bloodRequestId != null
+          ? bloodRequestId()
+          : this.bloodRequestId,
       donorId: donorId ?? this.donorId,
       bloodType: bloodType ?? this.bloodType,
       priority: priority ?? this.priority,

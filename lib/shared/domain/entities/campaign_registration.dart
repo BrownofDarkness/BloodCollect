@@ -33,8 +33,9 @@ class CampaignRegistration {
       id: id ?? this.id,
       campaignId: campaignId ?? this.campaignId,
       donorId: donorId ?? this.donorId,
-      scheduledTime:
-          scheduledTime != null ? scheduledTime() : this.scheduledTime,
+      scheduledTime: scheduledTime != null
+          ? scheduledTime()
+          : this.scheduledTime,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

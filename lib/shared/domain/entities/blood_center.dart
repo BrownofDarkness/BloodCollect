@@ -73,14 +73,12 @@ class BloodCenter {
       phone: phone ?? this.phone,
       agreementNumber: agreementNumber ?? this.agreementNumber,
       contactFunction: contactFunction ?? this.contactFunction,
-      openingHoursWeekdays:
-          openingHoursWeekdays ?? this.openingHoursWeekdays,
+      openingHoursWeekdays: openingHoursWeekdays ?? this.openingHoursWeekdays,
       openingHoursSaturday: openingHoursSaturday != null
           ? openingHoursSaturday()
           : this.openingHoursSaturday,
       lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
-      unavailableThreshold:
-          unavailableThreshold ?? this.unavailableThreshold,
+      unavailableThreshold: unavailableThreshold ?? this.unavailableThreshold,
       verificationStatus: verificationStatus ?? this.verificationStatus,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

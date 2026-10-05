@@ -36,14 +36,12 @@ class BloodCenterModel extends BloodCenter {
       phone: map['phone'] as String? ?? '',
       agreementNumber: map['agreementNumber'] as String? ?? '',
       contactFunction: map['contactFunction'] as String? ?? '',
-      openingHoursWeekdays:
-          map['openingHoursWeekdays'] as String? ?? '07h-18h',
+      openingHoursWeekdays: map['openingHoursWeekdays'] as String? ?? '07h-18h',
       openingHoursSaturday: map['openingHoursSaturday'] as String?,
       lowStockThreshold: (map['lowStockThreshold'] as num?)?.toInt() ?? 20,
-      unavailableThreshold:
-          (map['unavailableThreshold'] as num?)?.toInt() ?? 5,
-      verificationStatus: VerificationStatus.fromString(
-              map['verificationStatus'] as String?) ??
+      unavailableThreshold: (map['unavailableThreshold'] as num?)?.toInt() ?? 5,
+      verificationStatus:
+          VerificationStatus.fromString(map['verificationStatus'] as String?) ??
           VerificationStatus.pending,
       createdAt: tsToDate(map['createdAt'], fallback: DateTime.now()),
       updatedAt: tsToDate(map['updatedAt'], fallback: DateTime.now()),
@@ -51,21 +49,21 @@ class BloodCenterModel extends BloodCenter {
   }
 
   Map<String, dynamic> toMap() => {
-        'userId': userId,
-        'name': name,
-        'address': address,
-        'city': city,
-        'commune': commune,
-        'location': geoToFirestore(location),
-        'phone': phone,
-        'agreementNumber': agreementNumber,
-        'contactFunction': contactFunction,
-        'openingHoursWeekdays': openingHoursWeekdays,
-        'openingHoursSaturday': openingHoursSaturday,
-        'lowStockThreshold': lowStockThreshold,
-        'unavailableThreshold': unavailableThreshold,
-        'verificationStatus': verificationStatus.firestoreValue,
-        'createdAt': dateToTs(createdAt),
-        'updatedAt': dateToTs(updatedAt),
-      };
+    'userId': userId,
+    'name': name,
+    'address': address,
+    'city': city,
+    'commune': commune,
+    'location': geoToFirestore(location),
+    'phone': phone,
+    'agreementNumber': agreementNumber,
+    'contactFunction': contactFunction,
+    'openingHoursWeekdays': openingHoursWeekdays,
+    'openingHoursSaturday': openingHoursSaturday,
+    'lowStockThreshold': lowStockThreshold,
+    'unavailableThreshold': unavailableThreshold,
+    'verificationStatus': verificationStatus.firestoreValue,
+    'createdAt': dateToTs(createdAt),
+    'updatedAt': dateToTs(updatedAt),
+  };
 }

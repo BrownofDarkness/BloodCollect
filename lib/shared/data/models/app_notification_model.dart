@@ -20,7 +20,8 @@ class AppNotificationModel extends AppNotification {
     return AppNotificationModel(
       id: id,
       recipientId: map['recipientId'] as String? ?? '',
-      type: NotificationType.fromString(map['type'] as String?) ??
+      type:
+          NotificationType.fromString(map['type'] as String?) ??
           NotificationType.bloodRequest,
       title: map['title'] as String? ?? '',
       body: map['body'] as String? ?? '',
@@ -34,13 +35,13 @@ class AppNotificationModel extends AppNotification {
   }
 
   Map<String, dynamic> toMap() => {
-        'recipientId': recipientId,
-        'type': type.firestoreValue,
-        'title': title,
-        'body': body,
-        'payload': payload,
-        'isRead': isRead,
-        'createdAt': dateToTs(createdAt),
-        'readAt': readAt == null ? null : dateToTs(readAt!),
-      };
+    'recipientId': recipientId,
+    'type': type.firestoreValue,
+    'title': title,
+    'body': body,
+    'payload': payload,
+    'isRead': isRead,
+    'createdAt': dateToTs(createdAt),
+    'readAt': readAt == null ? null : dateToTs(readAt!),
+  };
 }

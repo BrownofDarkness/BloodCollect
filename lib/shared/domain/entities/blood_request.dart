@@ -145,10 +145,12 @@ class BloodRequest {
       matchedBloodCenterId: matchedBloodCenterId != null
           ? matchedBloodCenterId()
           : this.matchedBloodCenterId,
-      quantityGranted:
-          quantityGranted != null ? quantityGranted() : this.quantityGranted,
-      responseMessage:
-          responseMessage != null ? responseMessage() : this.responseMessage,
+      quantityGranted: quantityGranted != null
+          ? quantityGranted()
+          : this.quantityGranted,
+      responseMessage: responseMessage != null
+          ? responseMessage()
+          : this.responseMessage,
       notes: notes != null ? notes() : this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
