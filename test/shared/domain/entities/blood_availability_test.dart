@@ -39,6 +39,7 @@ void main() {
     required String centerId,
     required DateTime expiryDate,
     StockLotStatus status = StockLotStatus.available,
+    DateTime? updatedAt,
   }) {
     return BloodStockLot(
       id: 'lot_$bloodType$quantity',
@@ -51,55 +52,74 @@ void main() {
       collectionDate: reference.subtract(const Duration(days: 5)),
       status: status,
       createdAt: reference,
-      updatedAt: reference,
+      updatedAt: updatedAt ?? reference,
     );
+  }
+
+  /// Niveau d'un groupe dans un centre, calculé depuis les lots.
+  ///
+  /// L'entité décrit un groupe sanguin à la fois : unlike aggregates, la
+  /// lecture passe donc par un `fromLots` par groupe.
+  AvailabilityLevel levelOf({
+    required BloodCenter center,
+    required BloodType bloodType,
+    required List<BloodStockLot> lots,
+  }) {
+    return BloodAvailability.fromLots(
+      center: center,
+      bloodType: bloodType,
+      lots: lots,
+      now: reference,
+    ).level;
   }
 
   group('BloodAvailability.fromLots', () {
     test('classe les unités selon les seuils du centre', () {
-      final availability = BloodAvailability.fromLots(
-        center: centerWith(),
-        lots: [
-          lot(
-            bloodType: BloodType.oPos,
-            quantity: 64,
-            centerId: 'center_a',
-            expiryDate: reference.add(const Duration(days: 20)),
-          ),
-          lot(
-            bloodType: BloodType.oNeg,
-            quantity: 12,
-            centerId: 'center_a',
-            expiryDate: reference.add(const Duration(days: 20)),
-          ),
-          lot(
-            bloodType: BloodType.aNeg,
-            quantity: 0,
-            centerId: 'center_a',
-            expiryDate: reference.add(const Duration(days: 20)),
-          ),
-        ],
-        updatedAt: reference,
-        now: reference,
-      );
+      final center = centerWith();
+      final lots = [
+        lot(
+          bloodType: BloodType.oPos,
+          quantity: 64,
+          centerId: 'center_a',
+          expiryDate: reference.add(const Duration(days: 20)),
+        ),
+        lot(
+          bloodType: BloodType.oNeg,
+          quantity: 12,
+          centerId: 'center_a',
+          expiryDate: reference.add(const Duration(days: 20)),
+        ),
+        lot(
+          bloodType: BloodType.aNeg,
+          quantity: 0,
+          centerId: 'center_a',
+          expiryDate: reference.add(const Duration(days: 20)),
+        ),
+      ];
 
       expect(
-        availability.statusOf(BloodType.oPos),
-        BloodAvailabilityStatus.available,
+        levelOf(center: center, bloodType: BloodType.oPos, lots: lots),
+        AvailabilityLevel.available,
+        reason: '64 unités dépassent le seuil de 20 : disponible',
       );
       expect(
-        availability.statusOf(BloodType.oNeg),
-        BloodAvailabilityStatus.limited,
+        levelOf(center: center, bloodType: BloodType.oNeg, lots: lots),
+        AvailabilityLevel.limited,
+        reason: '12 unités sont entre les seuils 5 et 20 : limitée',
       );
       expect(
-        availability.statusOf(BloodType.aNeg),
-        BloodAvailabilityStatus.unavailable,
+        levelOf(center: center, bloodType: BloodType.aNeg, lots: lots),
+        AvailabilityLevel.unavailable,
+        reason: '0 unité est sous le seuil de 5 : indisponible',
       );
     });
 
     test('additionne les lots d\'un même groupe', () {
+      // Seuil à 30 : 20 + 15 = 35 le dépasse, mais aucun lot seul ne le fait.
+      // Le niveau disponible prouve donc que les lots ont été sommés.
       final availability = BloodAvailability.fromLots(
         center: centerWith(lowStockThreshold: 30),
+        bloodType: BloodType.oPos,
         lots: [
           lot(
             bloodType: BloodType.oPos,
@@ -114,20 +134,17 @@ void main() {
             expiryDate: reference.add(const Duration(days: 20)),
           ),
         ],
-        updatedAt: reference,
         now: reference,
       );
 
-      expect(availability.unitsOf(BloodType.oPos), 35);
-      expect(
-        availability.statusOf(BloodType.oPos),
-        BloodAvailabilityStatus.available,
-      );
+      expect(availability.level, AvailabilityLevel.available);
+      expect(availability.bloodType, BloodType.oPos);
     });
 
     test('ignore un lot périmé même s\'il est marqué disponible', () {
       final availability = BloodAvailability.fromLots(
         center: centerWith(),
+        bloodType: BloodType.oPos,
         lots: [
           lot(
             bloodType: BloodType.oPos,
@@ -136,20 +153,17 @@ void main() {
             expiryDate: reference.subtract(const Duration(days: 1)),
           ),
         ],
-        updatedAt: reference,
         now: reference,
       );
 
-      expect(availability.unitsOf(BloodType.oPos), 0);
-      expect(
-        availability.statusOf(BloodType.oPos),
-        BloodAvailabilityStatus.unavailable,
-      );
+      expect(availability.level, AvailabilityLevel.unavailable);
+      expect(availability.canRequest, isFalse);
     });
 
     test('ignore les lots non disponibles', () {
       final availability = BloodAvailability.fromLots(
         center: centerWith(),
+        bloodType: BloodType.oPos,
         lots: [
           lot(
             bloodType: BloodType.oPos,
@@ -159,16 +173,16 @@ void main() {
             status: StockLotStatus.reserved,
           ),
         ],
-        updatedAt: reference,
         now: reference,
       );
 
-      expect(availability.unitsOf(BloodType.oPos), 0);
+      expect(availability.level, AvailabilityLevel.unavailable);
     });
 
     test('ignore les lots d\'un autre centre', () {
       final availability = BloodAvailability.fromLots(
         center: centerWith(),
+        bloodType: BloodType.oPos,
         lots: [
           lot(
             bloodType: BloodType.oPos,
@@ -177,26 +191,181 @@ void main() {
             expiryDate: reference.add(const Duration(days: 20)),
           ),
         ],
-        updatedAt: reference,
         now: reference,
       );
 
-      expect(availability.unitsOf(BloodType.oPos), 0);
+      expect(availability.level, AvailabilityLevel.unavailable);
     });
 
-    test('traite un groupe absent comme indisponible', () {
+    test('traite un groupe sans aucun lot comme indisponible', () {
       final availability = BloodAvailability.fromLots(
         center: centerWith(),
+        bloodType: BloodType.abPos,
         lots: const [],
-        updatedAt: reference,
+        now: reference,
+      );
+
+      expect(availability.level, AvailabilityLevel.unavailable);
+      expect(availability.canRequest, isFalse);
+    });
+
+    test('reporte la date du lot le plus récent', () {
+      final center = centerWith();
+      final later = reference.add(const Duration(days: 2));
+      final availability = BloodAvailability.fromLots(
+        center: center,
+        bloodType: BloodType.oPos,
+        lots: [
+          lot(
+            bloodType: BloodType.oPos,
+            quantity: 10,
+            centerId: 'center_a',
+            expiryDate: reference.add(const Duration(days: 20)),
+            updatedAt: reference,
+          ),
+          lot(
+            bloodType: BloodType.oPos,
+            quantity: 10,
+            centerId: 'center_a',
+            expiryDate: reference.add(const Duration(days: 20)),
+            updatedAt: later,
+          ),
+        ],
+        now: reference,
+      );
+
+      expect(availability.updatedAt, later);
+    });
+
+    test('sans lot, la date du centre fait foi', () {
+      final availability = BloodAvailability.fromLots(
+        center: centerWith(),
+        bloodType: BloodType.oPos,
+        lots: const [],
+        now: reference,
+      );
+
+      expect(availability.updatedAt, reference);
+    });
+
+    test('sans origine connue, la distance reste inconnue', () {
+      final availability = BloodAvailability.fromLots(
+        center: centerWith(),
+        bloodType: BloodType.oPos,
+        lots: const [],
+        now: reference,
+      );
+
+      expect(availability.distanceKm, isNull);
+    });
+
+    test('calcule la distance quand l\'origine est fournie', () {
+      final availability = BloodAvailability.fromLots(
+        center: centerWith(),
+        bloodType: BloodType.oPos,
+        lots: const [],
+        now: reference,
+        origin: centerWith().location,
+      );
+
+      expect(availability.distanceKm, closeTo(0, 0.001));
+    });
+  });
+
+  group('BloodAvailability.allGroups', () {
+    test('couvre les 8 groupes dans l\'ordre d\'affichage', () {
+      final groups = BloodAvailability.allGroups(
+        center: centerWith(),
+        lots: [
+          lot(
+            bloodType: BloodType.oPos,
+            quantity: 64,
+            centerId: 'center_a',
+            expiryDate: reference.add(const Duration(days: 20)),
+          ),
+        ],
+        now: reference,
+      );
+
+      expect(groups, hasLength(BloodType.values.length));
+      expect(
+        groups.map((group) => group.bloodType),
+        BloodType.displayOrder,
+      );
+    });
+
+    test('n\'expose que le niveau déclaré, jamais les quantités', () {
+      final groups = BloodAvailability.allGroups(
+        center: centerWith(),
+        lots: [
+          lot(
+            bloodType: BloodType.oPos,
+            quantity: 64,
+            centerId: 'center_a',
+            expiryDate: reference.add(const Duration(days: 20)),
+          ),
+        ],
         now: reference,
       );
 
       expect(
-        availability.statusOf(BloodType.abPos),
-        BloodAvailabilityStatus.unavailable,
+        groups.firstWhere((g) => g.bloodType == BloodType.oPos).level,
+        AvailabilityLevel.available,
       );
-      expect(availability.unitsOf(BloodType.abPos), 0);
+      expect(
+        groups
+            .where((g) => g.bloodType != BloodType.oPos)
+            .every((g) => g.level == AvailabilityLevel.unavailable),
+        isTrue,
+        reason: 'un groupe sans lot est indiscernable d\'un groupe épuisé',
+      );
+    });
+  });
+
+  group('BloodAvailability.compare', () {
+    BloodAvailability at(AvailabilityLevel level, {double? distanceKm}) {
+      return BloodAvailability(
+        center: centerWith(),
+        bloodType: BloodType.oPos,
+        level: level,
+        updatedAt: reference,
+        distanceKm: distanceKm,
+      );
+    }
+
+    test('range le plus disponible en premier', () {
+      final groups = [
+        at(AvailabilityLevel.unavailable),
+        at(AvailabilityLevel.available),
+        at(AvailabilityLevel.limited),
+      ]..sort(BloodAvailability.compare);
+
+      expect(
+        groups.map((group) => group.level),
+        [
+          AvailabilityLevel.available,
+          AvailabilityLevel.limited,
+          AvailabilityLevel.unavailable,
+        ],
+      );
+    });
+
+    test('à niveau égal, range le plus proche en premier', () {
+      final groups = [
+        at(AvailabilityLevel.available, distanceKm: 9),
+        at(AvailabilityLevel.available, distanceKm: 2),
+      ]..sort(BloodAvailability.compare);
+
+      expect(groups.first.distanceKm, 2);
+    });
+
+    test('sans distance connue, le groupe passe en dernier', () {
+      final groups = [
+        at(AvailabilityLevel.available),
+        at(AvailabilityLevel.available, distanceKm: 12),
+      ]..sort(BloodAvailability.compare);
+
+      expect(groups.first.distanceKm, 12);
     });
   });
 }
