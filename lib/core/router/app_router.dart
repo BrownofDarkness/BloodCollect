@@ -36,7 +36,6 @@ import '../../features/blood_center/presentation/screens/bc_request_detail_scree
 import '../../features/blood_center/presentation/screens/bc_campaigns_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_campaign_form_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_profile_screen.dart';
-import '../../features/citizen/presentation/screens/citizen_shell.dart';
 import '../../features/health_center/presentation/screens/hc_blood_center_screen.dart';
 import '../../features/health_center/presentation/screens/hc_blood_request_screen.dart';
 import '../../features/health_center/presentation/screens/hc_blood_search_screen.dart';
