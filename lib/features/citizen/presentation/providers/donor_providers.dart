@@ -13,6 +13,8 @@ import '../../data/repositories/citizen_read_repository_impl.dart';
 import '../../data/repositories/donor_search_repository_impl.dart';
 import '../../domain/repositories/citizen_read_repositories.dart';
 import '../../domain/repositories/donor_search_repository.dart';
+// ignore: depend_on_referenced_packages
+import 'package:collection/collection.dart';
 
 part 'donor_providers.g.dart';
 
@@ -60,7 +62,7 @@ Future<List<Campaign>> upcomingCampaigns(Ref ref) {
 class DonorSearchFilters {
   const DonorSearchFilters({
     this.bloodType,
-    this.city = 'Abidjan',
+    this.city = 'Douala',
     this.communes = const {},
     this.priority = Priority.normal,
   });
@@ -71,8 +73,19 @@ class DonorSearchFilters {
   final Priority priority;
 
   /// Une recherche n'est lancé qu'un groupe sanguin et au moins une commune
-  /// sont choisis : sans cela, le citizenéen verrait tout Abidjan.
+  /// sont choisis : sans cela, le citizenéen verrait tout Douala.
   bool get isValid => bloodType != null && communes.isNotEmpty;
+
+    @override
+    bool operator ==(Object other) =>
+        other is DonorSearchFilters &&
+        other.bloodType == bloodType &&
+        other.city == city &&
+        other.priority == priority &&
+        const SetEquality().equals(other.communes, communes);
+
+    @override
+    int get hashCode => Object.hash(bloodType, city, priority, Object.hashAllUnordered(communes));
 
   DonorSearchFilters copyWith({
     BloodType? bloodType,

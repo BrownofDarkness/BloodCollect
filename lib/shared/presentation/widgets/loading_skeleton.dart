@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -91,6 +93,21 @@ class DonorListSkeleton extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: count,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (_, _) => const DonorCardSkeleton(),
+    );
+  }
+}
+
+class _ResultsSkeletonList extends StatelessWidget {
+  const _ResultsSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 3,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (_, _) => const DonorCardSkeleton(),
     );

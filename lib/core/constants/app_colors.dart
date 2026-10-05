@@ -43,6 +43,6 @@ class AppColors {
   static const Color encre = Color(0xFF1C1917);
   static const Color gris = Color(0xFF6B7280);
   static const Color slate = Color(0xFF374151);
-  static const Color ligne = Color(0xFFE7E0D9);
+  static const Color ligne = Color(0xFFE7E0D6);
   static const textSecondary = Color(0xFF57534E); // Texte secondaire
 }

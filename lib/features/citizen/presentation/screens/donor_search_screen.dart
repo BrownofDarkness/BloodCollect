@@ -18,6 +18,7 @@ const _villes = [
   'San-Pédro',
   'Daloa',
   'Korhogo',
+  'Douala',
 ];
 const _communesAbidjan = [
   'Treichville',
@@ -31,12 +32,26 @@ const _communesAbidjan = [
   'Port-Bouët',
   'Attécoubé',
 ];
+const _communesDouala = [
+  'Bonabéri',
+  'Bassa',
+  'Deïdo',
+  'Makepe',
+  'Logbaba',
+  'Akwa',
+  'Bonapriso',
+  'Bonamoussadi',
+  'New-Bell',
+  'Ndogbong',
+  'Akwa',
+];
 
 /// Les listes de communes ne couvrent qu'Abidjan aujourd'hui. Les autres
 /// villes restent sélectionnables : changer de ville vide la sélection et
 /// l'écran explique alors qu'aucune commune n'est disponible.
 const _communesByCity = <String, List<String>>{
   'Abidjan': _communesAbidjan,
+  'Douala': _communesDouala,
 };
 
 List<String> communesFor(String city) => _communesByCity[city] ?? const [];
@@ -115,7 +130,11 @@ class DonorSearchScreen extends ConsumerWidget {
               children: [
                 // Expanded : le libelle se comprime au lieu de deborder sur
                 // les ecrans etroits, le bouton garde sa place.
-                Expanded(child: _SectionLabel('COMMUNES DE ${filters.city.toUpperCase()}')),
+                Expanded(
+                  child: _SectionLabel(
+                    'COMMUNES DE ${filters.city.toUpperCase()}',
+                  ),
+                ),
                 const SizedBox(width: 8),
                 TextButton(
                   onPressed: communes.isEmpty
@@ -208,7 +227,7 @@ class DonorSearchScreen extends ConsumerWidget {
                           "transfusion agréé, après vérification de "
                           "l'éligibilité.",
                           style: TextStyle(
-                            color: AppColors.bleu,
+                            color: AppColors.textSecondary,
                             fontSize: 13,
                             height: 1.45,
                           ),
@@ -221,15 +240,22 @@ class DonorSearchScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 28),
 
+            // donor_search_screen.dart — bouton final
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                // Chemin absolu : un push relatif ne resout pas dans une
-                // branche de StatefulShellRoute et ne naviguait nulle part.
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.bleu,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.ligne,
+                  minimumSize: const Size(double.infinity, 52),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 onPressed: filters.isValid
                     ? () => context.push(
-                        '${AppRoutes.citizenDonors}/'
-                        '${AppRoutes.citizenDonorsResults}',
+                        '${AppRoutes.citizenDonors}/${AppRoutes.citizenDonorsResults}',
                         extra: filters,
                       )
                     : null,

@@ -13,6 +13,7 @@ import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/presentation/models/enum_labels.dart';
 import '../../../../shared/presentation/widgets/app_snackbar.dart';
 import '../../../../shared/presentation/widgets/donor_card.dart';
+// ignore: unused_import
 import '../../../../shared/presentation/widgets/loading_skeleton.dart';
 import '../../../../shared/presentation/widgets/person_badge.dart';
 import '../providers/donor_providers.dart';
@@ -37,158 +38,173 @@ class DonorResultsScreen extends ConsumerWidget {
         leading: BackControl(onBack: () => context.pop()),
         title: const PersonBadge(label: 'Personne'),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Donneurs potentiels',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _FilterPill(text: filters.bloodType?.label ?? ''),
-                    _FilterPill(
-                      text: filters.communes.take(3).join(', ') +
-                          (filters.communes.length > 3 ? '...' : ''),
-                    ),
-                    _FilterPill(
-                      text: 'Urgence ${filters.priority.label.toLowerCase()}',
-                    ),
-                  ],
-                ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () => context.pop(),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.bleu,
-                      padding: EdgeInsets.zero,
-                    ),
-                    child: const Text(
-                      'Modifier',
-                      style: TextStyle(
-                        color: AppColors.bleu,
-                        fontWeight: FontWeight.w700,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.bleu,
-                      ),
-                    ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Donneurs potentiels',
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
                   ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.bleuLight.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Icon(Icons.info_outline, size: 18, color: AppColors.bleu),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Un donneur n'est pas du sang disponible.",
-                              style: TextStyle(
-                                color: AppColors.bleu,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            SizedBox(height: 5),
-                            Text(
-                              "S'il accepte, il se rendra dans un centre de "
-                              "transfusion pour l'évaluation et le don.",
-                              style: TextStyle(
-                                color: AppColors.bleu,
-                                fontSize: 12.5,
-                                height: 1.45,
-                              ),
-                            ),
-                          ],
-                        ),
+                      _FilterPill(text: filters.bloodType?.label ?? ''),
+                      _FilterPill(
+                        text:
+                            filters.communes.take(3).join(', ') +
+                            (filters.communes.length > 3 ? '...' : ''),
+                      ),
+                      _FilterPill(
+                        text: 'Urgence ${filters.priority.label.toLowerCase()}',
                       ),
                     ],
                   ),
-                ),
-              ],
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () => context.pop(),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.bleu,
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: const Text(
+                        'Modifier',
+                        style: TextStyle(
+                          color: AppColors.bleu,
+                          fontWeight: FontWeight.w700,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.bleu,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.bleuLight,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 18,
+                          color: AppColors.bleu,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Un donneur n'est pas du sang disponible.",
+                                style: TextStyle(
+                                  color: AppColors.bleu,
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                "S'il accepte, il se rendra dans un centre de "
+                                "transfusion pour l'évaluation et le don.",
+                                style: TextStyle(
+                                  color: AppColors.bleu,
+                                  fontSize: 12.5,
+                                  height: 1.45,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          Expanded(
-            child: resultsAsync.when(
-              loading: () => const DonorListSkeleton(),
-              error: (err, _) => _ErrorResults(
+          resultsAsync.when(
+            loading: () => const SliverFillRemaining(
+              hasScrollBody: false,
+              child: _ResultsSkeletonList(),
+            ),
+            error: (err, _) => SliverFillRemaining(
+              hasScrollBody: false,
+              child: _ErrorResults(
                 onRetry: () =>
                     ref.invalidate(donorSearchResultsProvider(filters)),
               ),
-              data: (donors) {
-                if (donors.isEmpty) return const _EmptyResults();
-
-                return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                  itemCount: min(donors.length + 1, 51),  // ✅ Max 50 donors affichés
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
+            ),
+            data: (donors) {
+              if (donors.isEmpty) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _EmptyResults(),
+                );
+              }
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, i) {
                     if (i == 0) {
-                      return SingleChildScrollView(  // ✅ Permet au texte descroller
-                        scrollDirection: Axis.horizontal,
-                        child: Text(
-                          '${donors.length} donneur${donors.length > 1 ? 's' : ''} correspondent à votre recherche',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Text(
+                            '${donors.length} donneur${donors.length > 1 ? 's' : ''} correspondent à votre recherche',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       );
                     }
                     final raw = donors[i - 1];
-                    // Si contacté pendant cette session mais que le fetch d'origine
-                    // ne le savait pas encore, on force l'affichage "En attente".
                     final candidate =
                         contactedIds.contains(raw.donorId) &&
                             raw.matchStatus == null
                         ? raw.copyWith(matchStatus: DonorMatchStatus.pending)
                         : raw;
 
-                    return DonorCard(
-                      candidate: candidate,
-                      onContact: () async {
-                        final sent = await context.push<bool>(
-                          // Chemin absolu : le push relatif echoue
-                          // silencieusement dans une branche de shell.
-                          '${AppRoutes.citizenDonors}/'
-                          '${AppRoutes.citizenDonorsRequest}',
-                          extra: candidate,
-                        );
-                        if (sent == true) {
-                          ref
-                              .read(contactedDonorIdsProvider.notifier)
-                              .markContacted(candidate.donorId);
-                          if (context.mounted) {
-                            AppSnackbar.success(
-                              context,
-                              'Demande envoyée à ce donneur.',
-                            );
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: DonorCard(
+                        candidate: candidate,
+                        onContact: () async {
+                          final sent = await context.push<bool>(
+                            '${AppRoutes.citizenDonors}/${AppRoutes.citizenDonorsRequest}',
+                            extra: candidate,
+                          );
+                          if (sent == true) {
+                            ref
+                                .read(contactedDonorIdsProvider.notifier)
+                                .markContacted(candidate.donorId);
+                            if (context.mounted) {
+                              AppSnackbar.success(
+                                context,
+                                'Demande envoyée à ce donneur.',
+                              );
+                            }
                           }
-                        }
-                      },
+                        },
+                      ),
                     );
-                  },
-                );
-              },
-            ),
+                  }, childCount: min(donors.length + 1, 51)),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -213,6 +229,85 @@ class _FilterPill extends StatelessWidget {
       child: Text(
         text,
         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+class _ResultsSkeletonList extends StatelessWidget {
+  const _ResultsSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 4,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (_, _) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.ligne),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: AppColors.ligne,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 14,
+                            width: 120,
+                            color: AppColors.ligne,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 12,
+                            width: 180,
+                            color: AppColors.ligne,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 74,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.ligne,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 12,
+                  width: double.infinity,
+                  color: AppColors.ligne,
+                ),
+                const SizedBox(height: 8),
+                Container(height: 12, width: 220, color: AppColors.ligne),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
