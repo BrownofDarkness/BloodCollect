@@ -388,51 +388,6 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state, navigationShell) =>
             HealthCenterShell(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.hcHome,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Accueil'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.hcDonors,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Donneurs'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.hcBlood,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Sang'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.hcRequests,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Demandes'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.hcProfile,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Profil'),
-              ),
-            ],
-          ),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.hcHome,
