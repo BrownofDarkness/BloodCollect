@@ -466,51 +466,6 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state, navigationShell) =>
             BloodCenterShell(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.bcHome,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Accueil'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.bcStocks,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Stocks'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.bcRequests,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Demandes'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.bcCampaigns,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Collectes'),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.bcProfile,
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Profil'),
-              ),
-            ],
-          ),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.bcHome,
