@@ -120,15 +120,15 @@ void main() {
         final previous = BloodType.values
             .where(
               (t) =>
-                  result[index - 1].statusOf(t) ==
-                  BloodAvailabilityStatus.available,
+                  result[index - 1].levelOf(t) ==
+                  AvailabilityLevel.available,
             )
             .length;
         final current = BloodType.values
             .where(
               (t) =>
-                  result[index].statusOf(t) ==
-                  BloodAvailabilityStatus.available,
+                  result[index].levelOf(t) ==
+                  AvailabilityLevel.available,
             )
             .length;
         expect(previous, greaterThanOrEqualTo(current));

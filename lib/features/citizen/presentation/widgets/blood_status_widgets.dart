@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../shared/domain/entities/blood_availability.dart';
+import '../../domain/models/center_blood_availability.dart';
 
 // Représentation des groupes sanguins et des statuts de disponibilité.
 //
@@ -105,21 +106,21 @@ class BloodStatusStyle {
   final Color background;
   final IconData icon;
 
-  factory BloodStatusStyle.of(BloodAvailabilityStatus status) =>
+  factory BloodStatusStyle.of(AvailabilityLevel status) =>
       switch (status) {
-        BloodAvailabilityStatus.available => const BloodStatusStyle(
+        AvailabilityLevel.available => const BloodStatusStyle(
           label: 'Disponible',
           foreground: AppColors.disponible,
           background: AppColors.disponibleLight,
           icon: Icons.circle,
         ),
-        BloodAvailabilityStatus.limited => const BloodStatusStyle(
+        AvailabilityLevel.limited => const BloodStatusStyle(
           label: 'Disponibilité limitée',
           foreground: AppColors.limite,
           background: AppColors.limiteLight,
           icon: Icons.hourglass_bottom_rounded,
         ),
-        BloodAvailabilityStatus.unavailable => const BloodStatusStyle(
+        AvailabilityLevel.unavailable => const BloodStatusStyle(
           label: 'Indisponible',
           foreground: AppColors.indisponible,
           background: AppColors.indisponibleLight,
@@ -136,7 +137,7 @@ class BloodStatusBadge extends StatelessWidget {
     this.compact = false,
   });
 
-  final BloodAvailabilityStatus status;
+  final AvailabilityLevel status;
 
   /// Version courte pour les lignes serrées : « Limitée » au lieu de
   /// « Disponibilité limitée ».
@@ -146,7 +147,7 @@ class BloodStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = BloodStatusStyle.of(status);
     final label = compact
-        ? (status == BloodAvailabilityStatus.limited ? 'Limitée' : style.label)
+        ? (status == AvailabilityLevel.limited ? 'Limitée' : style.label)
         : style.label;
 
     return Container(
@@ -187,7 +188,7 @@ class BloodAvailabilityTile extends StatelessWidget {
   });
 
   final BloodType bloodType;
-  final BloodAvailabilityStatus status;
+  final AvailabilityLevel status;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +233,7 @@ class BloodAvailabilityTile extends StatelessWidget {
 class BloodAvailabilityGrid extends StatelessWidget {
   const BloodAvailabilityGrid({super.key, required this.availability});
 
-  final BloodAvailability availability;
+  final CenterBloodAvailability availability;
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +253,7 @@ class BloodAvailabilityGrid extends StatelessWidget {
             for (final bloodType in BloodType.values)
               BloodAvailabilityTile(
                 bloodType: bloodType,
-                status: availability.statusOf(bloodType),
+                status: availability.levelOf(bloodType),
               ),
           ],
         ),
@@ -261,9 +262,9 @@ class BloodAvailabilityGrid extends StatelessWidget {
           spacing: 16,
           runSpacing: 8,
           children: [
-            _LegendItem(status: BloodAvailabilityStatus.available),
-            _LegendItem(status: BloodAvailabilityStatus.limited),
-            _LegendItem(status: BloodAvailabilityStatus.unavailable),
+            _LegendItem(status: AvailabilityLevel.available),
+            _LegendItem(status: AvailabilityLevel.limited),
+            _LegendItem(status: AvailabilityLevel.unavailable),
           ],
         ),
       ],
@@ -274,12 +275,12 @@ class BloodAvailabilityGrid extends StatelessWidget {
 class _LegendItem extends StatelessWidget {
   const _LegendItem({required this.status});
 
-  final BloodAvailabilityStatus status;
+  final AvailabilityLevel status;
 
   @override
   Widget build(BuildContext context) {
     final style = BloodStatusStyle.of(status);
-    final label = status == BloodAvailabilityStatus.limited
+    final label = status == AvailabilityLevel.limited
         ? 'Limitée'
         : style.label;
 

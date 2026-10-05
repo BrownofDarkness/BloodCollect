@@ -241,73 +241,85 @@ class _ResultsSkeletonList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 4,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (_, _) {
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.ligne),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+      // Une Column et non un ListView : un viewport en shrinkWrap refuse de
+      // renvoyer ses dimensions intrinsèques, et le SliverFillRemaining qui
+      // porte cet etat les lui demande pour occuper la place restante.
+      child: Column(
+        children: [
+          for (var index = 0; index < 4; index++) ...[
+            if (index > 0) const SizedBox(height: 12),
+            const _SkeletonCard(),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Carte squelette de l'etat de chargement des resultats.
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.ligne),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.ligne,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: AppColors.ligne,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      height: 14,
+                      width: 120,
+                      color: AppColors.ligne,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            height: 14,
-                            width: 120,
-                            color: AppColors.ligne,
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            height: 12,
-                            width: 180,
-                            color: AppColors.ligne,
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SizedBox(height: 8),
                     Container(
-                      width: 74,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.ligne,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      height: 12,
+                      width: 180,
+                      color: AppColors.ligne,
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  height: 12,
-                  width: double.infinity,
+              ),
+              Container(
+                width: 74,
+                height: 32,
+                decoration: BoxDecoration(
                   color: AppColors.ligne,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(height: 8),
-                Container(height: 12, width: 220, color: AppColors.ligne),
-              ],
-            ),
-          );
-        },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            height: 12,
+            width: double.infinity,
+            color: AppColors.ligne,
+          ),
+          const SizedBox(height: 8),
+          Container(height: 12, width: 220, color: AppColors.ligne),
+        ],
       ),
     );
   }

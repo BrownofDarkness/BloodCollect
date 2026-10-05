@@ -1,6 +1,7 @@
 import '../../../../../core/constants/app_enums.dart';
 import '../../../../../core/utils/distance_utils.dart';
 import '../../../../../shared/domain/entities/entities.dart';
+import '../models/center_blood_availability.dart';
 import '../repositories/blood_center_repository.dart';
 import '../repositories/donor_repository.dart';
 
@@ -44,7 +45,7 @@ class GetBloodAvailabilityUseCase {
   final BloodCenterRepository centers;
   final DonorRepository donors;
 
-  Future<List<BloodCenterAvailability>> call({
+  Future<List<CenterBloodAvailability>> call({
     BloodAvailabilityFilter filter = BloodAvailabilityFilter.none,
     BloodAvailabilitySort sort = BloodAvailabilitySort.distance,
     DateTime? now,
@@ -53,19 +54,20 @@ class GetBloodAvailabilityUseCase {
     final origin = await donors.donorOrigin();
 
     final verified = await centers.verifiedCenters();
-    final results = <BloodCenterAvailability>[];
+    final results = <CenterBloodAvailability>[];
 
     for (final center in verified) {
       if (!_matchesLocation(center, filter)) continue;
 
       final lots = await centers.lotsOfCenter(center.id);
       results.add(
-        BloodCenterAvailability(
-          availability: BloodAvailability.fromLots(
+        CenterBloodAvailability.fromGroups(
+          center: center,
+          groups: BloodAvailability.allGroups(
             center: center,
             lots: lots,
-            updatedAt: center.updatedAt,
             now: reference,
+            origin: origin,
           ),
           distanceKm: distanceInKm(origin, center.location),
         ),
@@ -87,20 +89,13 @@ class GetBloodAvailabilityUseCase {
   }
 
   int _compare(
-    BloodCenterAvailability a,
-    BloodCenterAvailability b,
+    CenterBloodAvailability a,
+    CenterBloodAvailability b,
     BloodAvailabilitySort sort,
   ) => switch (sort) {
     BloodAvailabilitySort.distance => a.distanceKm.compareTo(b.distanceKm),
     BloodAvailabilitySort.name => a.center.name.compareTo(b.center.name),
-    BloodAvailabilitySort.mostAvailable => _availableUnits(
-      b,
-    ).compareTo(_availableUnits(a)),
+    BloodAvailabilitySort.mostAvailable =>
+      b.availableBloodTypeCount.compareTo(a.availableBloodTypeCount),
   };
-
-  int _availableUnits(BloodCenterAvailability entry) => BloodType.values
-      .where(
-        (type) => entry.statusOf(type) == BloodAvailabilityStatus.available,
-      )
-      .length;
 }

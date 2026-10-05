@@ -6,7 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/date_utils.dart';
-import '../../../../shared/domain/entities/blood_availability.dart';
+import '../../domain/models/center_blood_availability.dart';
 import '../../domain/usecases/get_blood_availability_usecase.dart';
 import '../providers/citizen_filters_providers.dart';
 import '../providers/citizen_providers.dart';
@@ -106,7 +106,7 @@ class _BloodAvailabilityBody extends ConsumerWidget {
 class _Results extends StatelessWidget {
   const _Results({required this.entries, required this.filter});
 
-  final List<BloodCenterAvailability> entries;
+  final List<CenterBloodAvailability> entries;
   final BloodAvailabilityFilter filter;
 
   @override
@@ -143,7 +143,7 @@ class _Results extends StatelessWidget {
 class _CenterCard extends StatelessWidget {
   const _CenterCard({required this.entry, required this.bloodType});
 
-  final BloodCenterAvailability entry;
+  final CenterBloodAvailability entry;
   final BloodType? bloodType;
 
   @override

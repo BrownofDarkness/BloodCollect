@@ -1,6 +1,7 @@
 import '../../../../../core/constants/app_enums.dart';
 import '../../../../../core/utils/distance_utils.dart';
 import '../../../../../shared/domain/entities/entities.dart';
+import '../models/center_blood_availability.dart';
 import '../repositories/blood_center_repository.dart';
 import '../repositories/campaign_repository.dart';
 import '../repositories/donor_repository.dart';
@@ -35,7 +36,7 @@ class DonationDashboard {
   final List<RegisteredCampaign> campaigns;
 
   /// Centres de transfusion vérifiés, triés par distance croissante.
-  final List<BloodCenterAvailability> nearbyCenters;
+  final List<CenterBloodAvailability> nearbyCenters;
 }
 
 class GetDonationDashboardUseCase {
@@ -69,19 +70,21 @@ class GetDonationDashboardUseCase {
     );
   }
 
-  Future<List<BloodCenterAvailability>> _nearbyCenters() async {
+  Future<List<CenterBloodAvailability>> _nearbyCenters() async {
     final origin = await donors.donorOrigin();
     final verified = await centers.verifiedCenters();
 
-    final entries = <BloodCenterAvailability>[];
+    final entries = <CenterBloodAvailability>[];
     for (final center in verified) {
       final lots = await centers.lotsOfCenter(center.id);
       entries.add(
-        BloodCenterAvailability(
-          availability: BloodAvailability.fromLots(
+        CenterBloodAvailability.fromGroups(
+          center: center,
+          groups: BloodAvailability.allGroups(
             center: center,
             lots: lots,
-            updatedAt: center.updatedAt,
+            now: DateTime.now(),
+            origin: origin,
           ),
           distanceKm: distanceInKm(origin, center.location),
         ),

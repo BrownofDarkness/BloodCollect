@@ -3,34 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import 'core/config/platform_firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _initFirebase();
   await initializeDateFormatting('fr');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const ProviderScope(child: BloodCollectApp()));
-}
-
-/// Démarre Firebase quand la plateforme le permet.
-///
-/// L'échec n'interrompt pas le démarrage : les écrans du module citoyen se
-/// rendent sur leurs données de test, et seules les fonctions qui demandent
-/// réellement le backend ont besoin de cette étape.
-Future<void> _initFirebase() async {
-  final options = PlatformFirebaseOptions.currentPlatform();
-  if (options == null) return;
-  try {
-    await Firebase.initializeApp(options: options);
-  } on FirebaseException {
-    // Réseau coupé, projet introuvable, quotas : l'application démarre quand
-    // même et l'écran concerné explique l'indisponibilité.
-  }
 }
 
 

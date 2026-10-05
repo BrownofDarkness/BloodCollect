@@ -176,7 +176,7 @@ Future<void> _loadFonts() async {
     '/snap/prompting-client/228/bin/data/flutter_assets/fonts/MaterialIcons-Regular.otf',
     '/snap/snap-store/1427/bin/data/flutter_assets/fonts/MaterialIcons-Regular.otf',
   ];
-  final _iconFontPaths = iconFonts;
+  final iconFontPaths = iconFonts;
 
   const candidates = [
     '/usr/share/fonts/truetype/lato/Lato-Regular.ttf',
@@ -198,7 +198,7 @@ Future<void> _loadFonts() async {
   if (loaded > 0) await text.load();
 
   // Sans cette police, les icônes Material sont dessinées comme des carrés.
-  for (final path in _iconFontPaths) {
+  for (final path in iconFontPaths) {
     final file = File(path);
     if (!file.existsSync()) continue;
     final icons = FontLoader('MaterialIcons')
