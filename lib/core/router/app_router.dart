@@ -112,7 +112,6 @@ abstract final class AppRoutes {
   static const hcBlood = '/hc/blood';
   static const hcRequests = '/hc/requests';
   static const hcProfile = '/hc/profile';
-  static const hcProfile  = '/hc/profile';
   static const hcBloodCenter = '/hc/blood/center/:centerId';
   static const hcBloodRequest = '/hc/blood/request';
 
