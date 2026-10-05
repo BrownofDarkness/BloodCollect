@@ -17,6 +17,14 @@ import '../../features/auth/presentation/screens/role_choice_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_shell.dart';
+import '../../features/blood_center/presentation/screens/bc_home_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_stocks_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_lot_form_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_requests_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_request_detail_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_campaigns_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_campaign_form_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_profile_screen.dart';
 import '../../features/citizen/presentation/screens/citizen_shell.dart';
 import '../../features/health_center/presentation/screens/hc_blood_center_screen.dart';
 import '../../features/health_center/presentation/screens/hc_blood_request_screen.dart';
@@ -385,36 +393,67 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.bcHome,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Accueil'),
+              builder: (context, state) => const BcHomeScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.bcStocks,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Stocks'),
+              builder: (context, state) => const BcStocksScreen(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) => BcLotFormScreen(
+                    initialType: state.uri.queryParameters['type'],
+                  ),
+                ),
+                GoRoute(
+                  path: ':lotId',
+                  builder: (context, state) => BcLotFormScreen(
+                    lotId: state.pathParameters['lotId'],
+                  ),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.bcRequests,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Demandes'),
+              builder: (context, state) => const BcRequestsScreen(),
+              routes: [
+                GoRoute(
+                  path: ':requestId',
+                  builder: (context, state) => BcRequestDetailScreen(
+                    requestId: state.pathParameters['requestId'] ?? '',
+                  ),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.bcCampaigns,
-              builder: (context, state) =>
-                  const PlaceholderScreen(title: 'Collectes'),
+              builder: (context, state) => const BcCampaignsScreen(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) =>
+                      const BcCampaignFormScreen(),
+                ),
+                GoRoute(
+                  path: ':campaignId',
+                  builder: (context, state) => BcCampaignFormScreen(
+                    campaignId:
+                        state.pathParameters['campaignId'],
+                  ),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.bcProfile,
-              builder: (context, state) =>
-                  const ProfileScreen(title: 'Profil'),
+              builder: (context, state) => const BcProfileScreen(),
             ),
           ]),
         ],

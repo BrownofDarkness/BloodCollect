@@ -16,32 +16,34 @@ class BloodCenterShell extends StatelessWidget {
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onTap,
         backgroundColor: Colors.white,
-        indicatorColor: AppColors.rougeLight,
+        indicatorColor: Colors.transparent,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard, color: AppColors.rouge),
+            icon: Icon(Icons.grid_view_outlined),
+            selectedIcon: Icon(Icons.grid_view, color: AppColors.rouge),
             label: 'Accueil',
           ),
           NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2, color: AppColors.rouge),
+            icon: Icon(Icons.layers_outlined),
+            selectedIcon: Icon(Icons.layers, color: AppColors.rouge),
             label: 'Stocks',
           ),
           NavigationDestination(
-            icon: Icon(Icons.list_alt_outlined),
-            selectedIcon: Icon(Icons.list_alt, color: AppColors.rouge),
+            icon: Icon(Icons.list_outlined),
+            selectedIcon: Icon(Icons.list, color: AppColors.rouge),
             label: 'Demandes',
           ),
           NavigationDestination(
-            icon: Icon(Icons.campaign_outlined),
-            selectedIcon: Icon(Icons.campaign, color: AppColors.rouge),
+            icon: Icon(Icons.calendar_today_outlined),
+            selectedIcon:
+                Icon(Icons.calendar_today, color: AppColors.rouge),
             label: 'Collectes',
           ),
           NavigationDestination(
-            icon: Icon(Icons.water_drop_outlined),
-            selectedIcon: Icon(Icons.water_drop, color: AppColors.rouge),
+            icon: Icon(Icons.account_balance_outlined),
+            selectedIcon:
+                Icon(Icons.account_balance, color: AppColors.rouge),
             label: 'Profil',
           ),
         ],
