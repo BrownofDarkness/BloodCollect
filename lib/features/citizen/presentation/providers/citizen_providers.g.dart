@@ -599,13 +599,13 @@ final bloodAvailabilityListProvider = BloodAvailabilityListFamily._();
 final class BloodAvailabilityListProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<BloodCenterAvailability>>,
-          List<BloodCenterAvailability>,
-          FutureOr<List<BloodCenterAvailability>>
+          AsyncValue<List<CenterBloodAvailability>>,
+          List<CenterBloodAvailability>,
+          FutureOr<List<CenterBloodAvailability>>
         >
     with
-        $FutureModifier<List<BloodCenterAvailability>>,
-        $FutureProvider<List<BloodCenterAvailability>> {
+        $FutureModifier<List<CenterBloodAvailability>>,
+        $FutureProvider<List<CenterBloodAvailability>> {
   /// Onglet « Sang » : la liste dépend des filtres, donc chaque changement de
   /// filtre invalide et relance la requête.
   BloodAvailabilityListProvider._({
@@ -631,12 +631,12 @@ final class BloodAvailabilityListProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<BloodCenterAvailability>> $createElement(
+  $FutureProviderElement<List<CenterBloodAvailability>> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<List<BloodCenterAvailability>> create(Ref ref) {
+  FutureOr<List<CenterBloodAvailability>> create(Ref ref) {
     final argument =
         this.argument as (BloodAvailabilityFilter, BloodAvailabilitySort);
     return bloodAvailabilityList(ref, argument.$1, argument.$2);
@@ -662,7 +662,7 @@ String _$bloodAvailabilityListHash() =>
 final class BloodAvailabilityListFamily extends $Family
     with
         $FunctionalFamilyOverride<
-          FutureOr<List<BloodCenterAvailability>>,
+          FutureOr<List<CenterBloodAvailability>>,
           (BloodAvailabilityFilter, BloodAvailabilitySort)
         > {
   BloodAvailabilityListFamily._()

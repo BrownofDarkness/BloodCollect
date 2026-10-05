@@ -4,7 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../core/utils/distance_utils.dart';
-import '../../../../shared/domain/entities/blood_availability.dart';
+import '../../domain/models/center_blood_availability.dart';
 import 'blood_status_widgets.dart';
 
 // Cartes d'un centre de transfusion.
@@ -23,7 +23,7 @@ class BloodCenterAvailabilityCard extends StatelessWidget {
     required this.onCall,
   });
 
-  final BloodCenterAvailability entry;
+  final CenterBloodAvailability entry;
 
   /// Groupe sanguin filtré : c'est lui qui détermine le statut affiché. Sans
   /// filtre, on retombe sur le meilleur statut du centre.
@@ -35,8 +35,8 @@ class BloodCenterAvailabilityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final center = entry.center;
     final status = bloodType != null
-        ? entry.statusOf(bloodType!)
-        : _bestStatusOf(entry);
+        ? entry.levelOf(bloodType!)
+        : entry.bestLevel;
 
     return Container(
       width: double.infinity,
@@ -127,21 +127,6 @@ class BloodCenterAvailabilityCard extends StatelessWidget {
       ),
     );
   }
-
-  /// Sans filtre actif, le centre est résumé par son meilleur statut : un
-  /// centre n'est jamais présenté comme indisponible s'il a un groupe en stock.
-  BloodAvailabilityStatus _bestStatusOf(BloodCenterAvailability entry) {
-    var best = BloodAvailabilityStatus.unavailable;
-    for (final status in BloodType.values.map(entry.statusOf)) {
-      if (status == BloodAvailabilityStatus.available) {
-        return BloodAvailabilityStatus.available;
-      }
-      if (status == BloodAvailabilityStatus.limited) {
-        best = BloodAvailabilityStatus.limited;
-      }
-    }
-    return best;
-  }
 }
 
 /// Ligne compacte d'un centre, dans « Centres de transfusion à proximité ».
@@ -152,7 +137,7 @@ class BloodCenterNearbyTile extends StatelessWidget {
     required this.onTap,
   });
 
-  final BloodCenterAvailability entry;
+  final CenterBloodAvailability entry;
   final VoidCallback onTap;
 
   @override

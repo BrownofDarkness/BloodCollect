@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../shared/domain/entities/entities.dart';
 import '../../data/datasources/blood_center_remote_datasource.dart';
 import '../../data/datasources/campaign_remote_datasource.dart';
 import '../../data/datasources/donor_remote_datasource.dart';
@@ -8,6 +7,7 @@ import '../../data/repositories/blood_center_repository_impl.dart';
 import '../../data/repositories/campaign_repository_impl.dart';
 import '../../data/repositories/donor_repository_impl.dart';
 import 'package:blood_collect/shared/domain/value_objects/city_reference.dart';
+import '../../domain/models/center_blood_availability.dart';
 import '../../domain/repositories/blood_center_repository.dart';
 import '../../domain/repositories/campaign_repository.dart';
 import '../../domain/repositories/donor_repository.dart';
@@ -85,7 +85,7 @@ CancelRegistrationUseCase cancelRegistrationUseCase(Ref ref) =>
 /// Onglet « Sang » : la liste dépend des filtres, donc chaque changement de
 /// filtre invalide et relance la requête.
 @riverpod
-Future<List<BloodCenterAvailability>> bloodAvailabilityList(
+Future<List<CenterBloodAvailability>> bloodAvailabilityList(
   Ref ref,
   BloodAvailabilityFilter filter,
   BloodAvailabilitySort sort,

@@ -101,7 +101,7 @@ class _CenterDetailsBody extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              BloodAvailabilityGrid(availability: details.availability),
+              BloodAvailabilityGrid(availability: details.entry),
               const SizedBox(height: 26),
 
               const CitizenSectionTitle('Comment se passe votre don'),

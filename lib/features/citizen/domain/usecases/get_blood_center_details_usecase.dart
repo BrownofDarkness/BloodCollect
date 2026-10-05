@@ -1,5 +1,6 @@
 import '../../../../../core/utils/distance_utils.dart';
 import '../../../../../shared/domain/entities/entities.dart';
+import '../models/center_blood_availability.dart';
 import '../repositories/blood_center_repository.dart';
 import '../repositories/campaign_repository.dart';
 import '../repositories/donor_repository.dart';
@@ -10,14 +11,13 @@ import '../repositories/donor_repository.dart';
 class BloodCenterDetails {
   const BloodCenterDetails({required this.entry, this.nearestCampaign});
 
-  final BloodCenterAvailability entry;
+  final CenterBloodAvailability entry;
 
   /// Première campagne à venir du centre, la source étant déjà triée par
   /// date de début croissante. `null` si le centre n'organise aucune collecte.
   final Campaign? nearestCampaign;
 
   BloodCenter get center => entry.center;
-  BloodAvailability get availability => entry.availability;
   double get distanceKm => entry.distanceKm;
 
   /// Dernière mise à jour du stock déclarée par le centre.
@@ -48,12 +48,13 @@ class GetBloodCenterDetailsUseCase {
     final upcoming = await campaigns.upcomingCampaignsOfCenter(center.id);
 
     return BloodCenterDetails(
-      entry: BloodCenterAvailability(
-        availability: BloodAvailability.fromLots(
+      entry: CenterBloodAvailability.fromGroups(
+        center: center,
+        groups: BloodAvailability.allGroups(
           center: center,
           lots: lots,
-          updatedAt: center.updatedAt,
           now: reference,
+          origin: origin,
         ),
         distanceKm: distanceInKm(origin, center.location),
       ),
