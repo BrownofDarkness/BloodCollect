@@ -28,10 +28,17 @@ dependencies:
   # Navigation
   go_router: ^18.0.1
 
+  # Internationalisation (dates FR, version pincée par le SDK)
+  intl: ^0.20.2
+
+  # Squelettes de chargement
+  shimmer: ^4.0.0
+
   # UI
   cupertino_icons: ^1.0.8
   dotted_border: ^3.1.0
   file_picker: ^13.1.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

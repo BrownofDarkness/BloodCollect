@@ -8,6 +8,7 @@ import '../config/backend_config.dart';
 import '../constants/app_enums.dart';
 import '../widgets/placeholder_screen.dart';
 import '../../features/auth/domain/entities/auth_user.dart';
+import '../../shared/domain/entities/donor_search_criteria.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -27,6 +28,24 @@ import '../../features/citizen/presentation/screens/match_request_received_scree
 import '../../features/citizen/presentation/screens/match_request_screen.dart';
 import '../../features/citizen/presentation/screens/donate_screen.dart';
 import '../../features/citizen/presentation/screens/profile_screen.dart' as citizen_profile;
+import '../../features/blood_center/presentation/screens/bc_home_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_stocks_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_lot_form_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_requests_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_request_detail_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_campaigns_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_campaign_form_screen.dart';
+import '../../features/blood_center/presentation/screens/bc_profile_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_shell.dart';
+import '../../features/health_center/presentation/screens/hc_blood_center_screen.dart';
+import '../../features/health_center/presentation/screens/hc_blood_request_screen.dart';
+import '../../features/health_center/presentation/screens/hc_blood_search_screen.dart';
+import '../../features/health_center/presentation/screens/hc_donor_contact_screen.dart';
+import '../../features/health_center/presentation/screens/hc_donor_results_screen.dart';
+import '../../features/health_center/presentation/screens/hc_donor_search_screen.dart';
+import '../../features/health_center/presentation/screens/hc_home_screen.dart';
+import '../../features/health_center/presentation/screens/hc_profile_screen.dart';
+import '../../features/health_center/presentation/screens/hc_requests_screen.dart';
 import '../../features/health_center/presentation/screens/hc_shell.dart';
 
 part 'app_router.g.dart';
@@ -93,6 +112,69 @@ abstract final class AppRoutes {
   static const hcBlood = '/hc/blood';
   static const hcRequests = '/hc/requests';
   static const hcProfile = '/hc/profile';
+  static const hcProfile  = '/hc/profile';
+  static const hcBloodCenter = '/hc/blood/center/:centerId';
+  static const hcBloodRequest = '/hc/blood/request';
+
+  // [bloodType] : groupe recherché, repris si une demande est lancée ensuite.
+  static String hcBloodCenterPath(String centerId, {BloodType? bloodType}) =>
+      Uri(
+        path: '$hcBlood/center/$centerId',
+        queryParameters: _query({'bloodType': bloodType?.firestoreValue}),
+      ).toString();
+
+  static String hcBloodRequestPath({
+    String? bloodCenterId,
+    BloodType? bloodType,
+  }) =>
+      Uri(
+        path: hcBloodRequest,
+        queryParameters: _query({
+          'bloodCenterId': bloodCenterId,
+          'bloodType': bloodType?.firestoreValue,
+        }),
+      ).toString();
+
+  static const hcDonorResults = '/hc/donors/results';
+  // Sélection transmise en `extra` (donneurs anonymisés, hors URL).
+  static const hcDonorContact = '/hc/donors/contact';
+
+  static String hcDonorResultsPath(DonorSearchCriteria criteria) => Uri(
+        path: hcDonorResults,
+        queryParameters: {
+          'bloodType': criteria.bloodType.firestoreValue,
+          'city': criteria.city,
+          'commune': criteria.communes,
+          'priority': criteria.priority.firestoreValue,
+          'count': '${criteria.donorCount}',
+        },
+      ).toString();
+
+  /// Lecture inverse de [hcDonorResultsPath] ; null si l'URL est incomplète.
+  static DonorSearchCriteria? donorCriteriaFrom(Uri uri) {
+    final params = uri.queryParameters;
+    final bloodType = BloodType.fromString(params['bloodType']);
+    final priority = Priority.fromString(params['priority']);
+    final count = int.tryParse(params['count'] ?? '');
+    final criteria = (bloodType == null || priority == null || count == null)
+        ? null
+        : DonorSearchCriteria(
+            bloodType: bloodType,
+            city: params['city'] ?? '',
+            communes: uri.queryParametersAll['commune'] ?? const [],
+            priority: priority,
+            donorCount: count,
+          );
+    return criteria != null && criteria.isValid ? criteria : null;
+  }
+
+  static Map<String, String>? _query(Map<String, String?> params) {
+    final query = {
+      for (final e in params.entries)
+        if (e.value != null) e.key: e.value!,
+    };
+    return query.isEmpty ? null : query;
+  }
 
   static const bcHome = '/bc/home';
   static const bcStocks = '/bc/stocks';
@@ -353,6 +435,76 @@ GoRouter appRouter(Ref ref) {
               ),
             ],
           ),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.hcHome,
+              builder: (context, state) => const HcHomeScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.hcDonors,
+              builder: (context, state) => const HcDonorSearchScreen(),
+              routes: [
+                // → AppRoutes.hcDonorResults
+                GoRoute(
+                  path: 'results',
+                  builder: (context, state) => HcDonorResultsScreen(
+                    criteria: AppRoutes.donorCriteriaFrom(state.uri),
+                  ),
+                ),
+                // → AppRoutes.hcDonorContact
+                GoRoute(
+                  path: 'contact',
+                  builder: (context, state) => HcDonorContactScreen(
+                    selection: state.extra is DonorContactSelection
+                        ? state.extra! as DonorContactSelection
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.hcBlood,
+              builder: (context, state) => const HcBloodSearchScreen(),
+              routes: [
+                // → AppRoutes.hcBloodCenter
+                GoRoute(
+                  path: 'center/:centerId',
+                  builder: (context, state) => HcBloodCenterScreen(
+                    centerId: state.pathParameters['centerId']!,
+                    bloodType: BloodType.fromString(
+                      state.uri.queryParameters['bloodType'],
+                    ),
+                  ),
+                ),
+                // → AppRoutes.hcBloodRequest
+                GoRoute(
+                  path: 'request',
+                  builder: (context, state) => HcBloodRequestScreen(
+                    bloodCenterId: state.uri.queryParameters['bloodCenterId'],
+                    bloodType: BloodType.fromString(
+                      state.uri.queryParameters['bloodType'],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.hcRequests,
+              builder: (context, state) => const HcRequestsScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.hcProfile,
+              builder: (context, state) => const HcProfileScreen(),
+            ),
+          ]),
         ],
       ),
 
@@ -406,6 +558,72 @@ GoRouter appRouter(Ref ref) {
               ),
             ],
           ),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.bcHome,
+              builder: (context, state) => const BcHomeScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.bcStocks,
+              builder: (context, state) => const BcStocksScreen(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) => BcLotFormScreen(
+                    initialType: state.uri.queryParameters['type'],
+                  ),
+                ),
+                GoRoute(
+                  path: ':lotId',
+                  builder: (context, state) => BcLotFormScreen(
+                    lotId: state.pathParameters['lotId'],
+                  ),
+                ),
+              ],
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.bcRequests,
+              builder: (context, state) => const BcRequestsScreen(),
+              routes: [
+                GoRoute(
+                  path: ':requestId',
+                  builder: (context, state) => BcRequestDetailScreen(
+                    requestId: state.pathParameters['requestId'] ?? '',
+                  ),
+                ),
+              ],
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.bcCampaigns,
+              builder: (context, state) => const BcCampaignsScreen(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) =>
+                      const BcCampaignFormScreen(),
+                ),
+                GoRoute(
+                  path: ':campaignId',
+                  builder: (context, state) => BcCampaignFormScreen(
+                    campaignId:
+                        state.pathParameters['campaignId'],
+                  ),
+                ),
+              ],
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.bcProfile,
+              builder: (context, state) => const BcProfileScreen(),
+            ),
+          ]),
         ],
       ),
     ],

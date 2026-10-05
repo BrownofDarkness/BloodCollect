@@ -64,18 +64,22 @@ service cloud.firestore {
     }
 
     // ── blood_stock_lots : lecture connectée, écriture centre propriétaire ──
+    // (delete séparé : request.resource n'existe pas en suppression)
     match /blood_stock_lots/{lotId} {
       allow get, list: if signedIn();
       allow create: if signedIn()
         && myCenter('blood_centers', request.resource.data.bloodCenterId);
-      allow update, delete: if
+      allow update: if
         myCenter('blood_centers', resource.data.bloodCenterId)
         && request.resource.data.bloodCenterId
              == resource.data.bloodCenterId;
+      allow delete: if
+        myCenter('blood_centers', resource.data.bloodCenterId);
     }
 
     // ── blood_requests : créée par le centre demandeur,
-    // traitée par lui ou le centre de transfusion ciblé ──
+    // traitée par lui ou le centre de transfusion (assigné ou qui se
+    // désigne en écrivant son propre id dans matchedBloodCenterId) ──
     match /blood_requests/{requestId} {
       allow get, list: if signedIn();
       allow create: if signedIn()
@@ -84,7 +88,11 @@ service cloud.firestore {
         myCenter('health_centers', resource.data.healthCenterId)
         || (resource.data.keys().hasAll(['matchedBloodCenterId'])
           && resource.data.matchedBloodCenterId != null
-          && myCenter('blood_centers', resource.data.matchedBloodCenterId));
+          && myCenter('blood_centers', resource.data.matchedBloodCenterId))
+        || (request.resource.data.keys().hasAll(['matchedBloodCenterId'])
+          && request.resource.data.matchedBloodCenterId != null
+          && myCenter('blood_centers',
+               request.resource.data.matchedBloodCenterId));
       allow delete: if false;
     }
 
@@ -104,14 +112,17 @@ service cloud.firestore {
     }
 
     // ── campaigns : lecture connectée, écriture centre organisateur ──
+    // (delete séparé : request.resource n'existe pas en suppression)
     match /campaigns/{campaignId} {
       allow get, list: if signedIn();
       allow create: if signedIn()
         && myCenter('blood_centers', request.resource.data.bloodCenterId);
-      allow update, delete: if
+      allow update: if
         myCenter('blood_centers', resource.data.bloodCenterId)
         && request.resource.data.bloodCenterId
              == resource.data.bloodCenterId;
+      allow delete: if
+        myCenter('blood_centers', resource.data.bloodCenterId);
     }
 
     // ── campaign_registrations : rattachée à sa campagne + donneur ──
