@@ -46,8 +46,16 @@ class _BcRequestsScreenState extends ConsumerState<BcRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final requests = ref.watch(bcBloodRequestsProvider);
-    final names = ref.watch(bcHealthCenterNamesProvider);
+    final requestsAsync = ref.watch(bcBloodRequestsProvider);
+    final namesAsync = ref.watch(bcHealthCenterNamesProvider);
+    final loading = requestsAsync.isLoading;
+    final Object? error = requestsAsync.hasError
+        ? requestsAsync.error
+        : namesAsync.hasError
+            ? namesAsync.error
+            : null;
+    final requests = requestsAsync.asData?.value ?? const <BloodRequest>[];
+    final names = namesAsync.asData?.value ?? const <String, String>{};
     final pending = pendingSorted(requests);
 
     final shown = switch (_tab) {
@@ -75,7 +83,6 @@ class _BcRequestsScreenState extends ConsumerState<BcRequestsScreen> {
               'apparaîtront ici.',
         ),
     };
-    final loading = ref.watch(bcMockReadyProvider).isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.ivoire,
@@ -162,8 +169,17 @@ class _BcRequestsScreenState extends ConsumerState<BcRequestsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (loading)
-                const ListShimmer()
+              if (error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: BcErrorState(
+                    message: '$error',
+                    onRetry: () => refreshBcData(ref),
+                  ),
+                ),
+              if (error == null)
+                if (loading)
+                  const ListShimmer()
               else if (shown.isEmpty)
                 BcEmptyState(
                   icon: empty.$1,

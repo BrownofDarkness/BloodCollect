@@ -25,7 +25,11 @@ class _BcCampaignsScreenState extends ConsumerState<BcCampaignsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final campaigns = ref.watch(bcCampaignsProvider);
+    final campaignsAsync = ref.watch(bcCampaignsProvider);
+    final loading = campaignsAsync.isLoading;
+    final Object? error =
+        campaignsAsync.hasError ? campaignsAsync.error : null;
+    final campaigns = campaignsAsync.asData?.value ?? const [];
     final now = DateTime.now();
     final upcoming = upcomingCampaigns(campaigns, now);
     final active = activeCampaigns(campaigns);
@@ -53,7 +57,6 @@ class _BcCampaignsScreenState extends ConsumerState<BcCampaignsScreen> {
           'Créez votre première collecte pour mobiliser des donneurs.',
         ),
     };
-    final loading = ref.watch(bcMockReadyProvider).isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.ivoire,
@@ -163,8 +166,17 @@ class _BcCampaignsScreenState extends ConsumerState<BcCampaignsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (loading)
-                const ListShimmer(count: 2)
+              if (error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: BcErrorState(
+                    message: '$error',
+                    onRetry: () => refreshBcData(ref),
+                  ),
+                ),
+              if (error == null)
+                if (loading)
+                  const ListShimmer(count: 2)
               else if (shown.isEmpty)
                 BcEmptyState(
                   icon: empty.$1,

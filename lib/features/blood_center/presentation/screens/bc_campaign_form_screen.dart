@@ -44,6 +44,7 @@ class _BcCampaignFormScreenState
   final Set<String> _communes = {};
   bool _notifyDonors = true;
   String? _selectionError;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -57,7 +58,8 @@ class _BcCampaignFormScreenState
     if (_initDone) return;
     _initDone = true;
     if (!_editing) return;
-    final campaigns = ref.read(bcCampaignsProvider);
+    final campaigns =
+        ref.read(bcCampaignsProvider).asData?.value ?? const [];
     final campaign =
         campaigns.where((c) => c.id == widget.campaignId).firstOrNull;
     if (campaign == null) return;
@@ -124,14 +126,27 @@ class _BcCampaignFormScreenState
       setState(() {});
       return;
     }
-    final now = DateTime.now();
-    final existing = _editing
-        ? ref
-            .read(bcCampaignsProvider)
-            .where((c) => c.id == widget.campaignId)
-            .firstOrNull
-        : null;
-    final start = DateTime(
+    setState(() => _submitting = true);
+    final centerId =
+        ref.read(myBloodCenterProvider).asData?.value?.id;
+    if (centerId == null) {
+      setState(() => _submitting = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Centre introuvable.')),
+        );
+      }
+      return;
+    }
+      final now = DateTime.now();
+      final campaigns =
+          ref.read(bcCampaignsProvider).asData?.value ?? const [];
+      final existing = _editing
+          ? campaigns
+              .where((c) => c.id == widget.campaignId)
+              .firstOrNull
+          : null;
+      final start = DateTime(
       _day!.year,
       _day!.month,
       _day!.day,
@@ -145,27 +160,38 @@ class _BcCampaignFormScreenState
       _end.hour,
       _end.minute,
     );
-    ref.read(bcCampaignsProvider.notifier).upsert(
-          Campaign(
-            id: existing?.id ?? 'camp-${now.millisecondsSinceEpoch}',
-            bloodCenterId: 'bc-a',
-            title: _titleController.text.trim(),
-            description: _descriptionController.text.trim(),
-            location: const GeoLocation(latitude: 0, longitude: 0),
-            locationName: _placeController.text.trim(),
-            commune: _commune,
-            startDate: start,
-            endDate: end,
-            targetBloodTypes: _bloodTypes.toList(),
-            targetCommunes: _communes.toList(),
-            targetUnits: _targetUnits,
-            collectedUnits: existing?.collectedUnits ?? 0,
-            notifyDonors: _notifyDonors,
-            status: status,
-            createdAt: existing?.createdAt ?? now,
-            updatedAt: now,
-          ),
+    try {
+      await ref.read(bloodCenterDataRepositoryProvider).saveCampaign(
+            Campaign(
+              id: existing?.id ?? '',
+              bloodCenterId: centerId,
+              title: _titleController.text.trim(),
+              description: _descriptionController.text.trim(),
+              location: const GeoLocation(latitude: 0, longitude: 0),
+              locationName: _placeController.text.trim(),
+              commune: _commune,
+              startDate: start,
+              endDate: end,
+              targetBloodTypes: _bloodTypes.toList(),
+              targetCommunes: _communes.toList(),
+              targetUnits: _targetUnits,
+              collectedUnits: existing?.collectedUnits ?? 0,
+              notifyDonors: _notifyDonors,
+              status: status,
+              createdAt: existing?.createdAt ?? now,
+              updatedAt: now,
+            ),
+          );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Enregistrement impossible ($e).')),
         );
+      }
+      return;
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -182,6 +208,43 @@ class _BcCampaignFormScreenState
 
   @override
   Widget build(BuildContext context) {
+    final campaignsAsync = ref.watch(bcCampaignsProvider);
+    final campaigns = campaignsAsync.asData?.value ?? const <Campaign>[];
+    final found =
+        !_editing || campaigns.any((c) => c.id == widget.campaignId);
+    if (_editing && !found) {
+      return Scaffold(
+        backgroundColor: AppColors.ivoire,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppBackButton(
+                  onPressed: () => context.go('/bc/campaigns'),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  campaignsAsync.isLoading
+                      ? 'Chargement de la collecte…'
+                      : 'Collecte introuvable.',
+                  style: const TextStyle(
+                    color: AppColors.encre,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (campaignsAsync.isLoading) ...[
+                  const SizedBox(height: 16),
+                  const CircularProgressIndicator(),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     _initFromProviders();
     final communesOfCity = _city == null
         ? <String>[]
@@ -535,7 +598,9 @@ class _BcCampaignFormScreenState
                 ],
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => _save(CampaignStatus.published),
+                  onPressed: _submitting
+                      ? null
+                      : () => _save(CampaignStatus.published),
                   style: ElevatedButton.styleFrom(
                     minimumSize:
                         const Size(double.infinity, 56),
@@ -560,7 +625,9 @@ class _BcCampaignFormScreenState
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton(
-                  onPressed: () => _save(CampaignStatus.draft),
+                  onPressed: _submitting
+                      ? null
+                      : () => _save(CampaignStatus.draft),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.encre,
                     minimumSize:

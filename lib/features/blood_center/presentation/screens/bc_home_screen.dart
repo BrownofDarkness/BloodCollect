@@ -17,11 +17,33 @@ class BcHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final center = ref.watch(bcCenterProvider);
-    final lots = ref.watch(bcStockLotsProvider);
-    final requests = ref.watch(bcBloodRequestsProvider);
-    final campaigns = ref.watch(bcCampaignsProvider);
-    final names = ref.watch(bcHealthCenterNamesProvider);
+    final centerAsync = ref.watch(myBloodCenterProvider);
+    final lotsAsync = ref.watch(bcStockLotsProvider);
+    final requestsAsync = ref.watch(bcBloodRequestsProvider);
+    final campaignsAsync = ref.watch(bcCampaignsProvider);
+    final namesAsync = ref.watch(bcHealthCenterNamesProvider);
+
+    final loading = centerAsync.isLoading ||
+        lotsAsync.isLoading ||
+        requestsAsync.isLoading ||
+        campaignsAsync.isLoading;
+    final center = centerAsync.asData?.value;
+    final Object? error = centerAsync.hasError
+        ? centerAsync.error
+        : lotsAsync.hasError
+            ? lotsAsync.error
+            : requestsAsync.hasError
+                ? requestsAsync.error
+                : campaignsAsync.hasError
+                    ? campaignsAsync.error
+                    : (!loading && center == null)
+                        ? 'Aucun centre associé à ce compte.'
+                        : null;
+
+    final lots = lotsAsync.asData?.value ?? const [];
+    final requests = requestsAsync.asData?.value ?? const [];
+    final campaigns = campaignsAsync.asData?.value ?? const [];
+    final names = namesAsync.asData?.value ?? const {};
 
     final byType = unitsByBloodType(lots);
     final total = totalUnits(byType);
@@ -41,7 +63,6 @@ class BcHomeScreen extends ConsumerWidget {
               StockAvailability.available,
         )
         .length;
-    final loading = ref.watch(bcMockReadyProvider).isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.ivoire,
@@ -121,7 +142,7 @@ class BcHomeScreen extends ConsumerWidget {
                 style: TextStyle(color: AppColors.gris, fontSize: 15),
               ),
               Text(
-                center.name,
+                center?.name ?? 'Centre de transfusion',
                 style: const TextStyle(
                   color: AppColors.encre,
                   fontSize: 28,
@@ -129,7 +150,16 @@ class BcHomeScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              loading
+              if (error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: BcErrorState(
+                    message: '$error',
+                    onRetry: () => refreshBcData(ref),
+                  ),
+                ),
+              if (error == null)
+                loading
                   ? const StatsShimmer()
                   : GridView.count(
                 crossAxisCount: 2,
@@ -223,7 +253,8 @@ class BcHomeScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              loading
+              if (error == null)
+                loading
                   ? const GroupGridShimmer()
                   : GridView.count(
                 crossAxisCount: 4,
@@ -308,8 +339,9 @@ class BcHomeScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              if (loading)
-                const ListShimmer(count: 1)
+              if (error == null)
+                if (loading)
+                  const ListShimmer(count: 1)
               else if (pending.isEmpty)
                 const BcEmptyState(
                   icon: Icons.inbox_outlined,

@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../shared/domain/entities/blood_center.dart';
 import '../../../auth/data/repositories/auth_repository_impl.dart';
 import '../../domain/blood_center_stats.dart';
 import '../providers/bc_dashboard_providers.dart';
+import '../widgets/bc_shimmer.dart';
 
 // Profil transfusion : fiche + pilotage, lecture seule.
 // Remplace le ProfileScreen temporaire sur /bc/profile uniquement.
@@ -15,11 +17,25 @@ class BcProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final center = ref.watch(bcCenterProvider);
-    final lots = ref.watch(bcStockLotsProvider);
-    final campaigns = ref.watch(bcCampaignsProvider);
+    final centerAsync = ref.watch(myBloodCenterProvider);
+    final lotsAsync = ref.watch(bcStockLotsProvider);
+    final campaignsAsync = ref.watch(bcCampaignsProvider);
     final low = ref.watch(bcLowThresholdProvider);
     final unavailable = ref.watch(bcUnavailableThresholdProvider);
+
+    final loading = centerAsync.isLoading ||
+        lotsAsync.isLoading ||
+        campaignsAsync.isLoading;
+    final Object? error = centerAsync.hasError
+        ? centerAsync.error
+        : lotsAsync.hasError
+            ? lotsAsync.error
+            : campaignsAsync.hasError
+                ? campaignsAsync.error
+                : null;
+    final center = centerAsync.asData?.value;
+    final lots = lotsAsync.asData?.value ?? const [];
+    final campaigns = campaignsAsync.asData?.value ?? const [];
 
     final total = totalUnits(unitsByBloodType(lots));
     final upcoming =
@@ -28,20 +44,70 @@ class BcProfileScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.ivoire,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Profil',
-                style: TextStyle(
-                  color: AppColors.encre,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
+        child: RefreshIndicator(
+          color: AppColors.rouge,
+          onRefresh: () => refreshBcData(ref),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Profil',
+                  style: TextStyle(
+                    color: AppColors.encre,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
+                if (loading)
+                  const ListShimmer(count: 2)
+                else if (error != null || center == null)
+                  BcErrorState(
+                    message: error != null
+                        ? '$error'
+                        : 'Aucun centre associé à ce compte.',
+                    onRetry: () => refreshBcData(ref),
+                  )
+                else
+                  _ProfileBody(
+                    center: center,
+                    total: total,
+                    upcoming: upcoming,
+                    low: low,
+                    unavailable: unavailable,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileBody extends StatelessWidget {
+  const _ProfileBody({
+    required this.center,
+    required this.total,
+    required this.upcoming,
+    required this.low,
+    required this.unavailable,
+  });
+
+  final BloodCenter center;
+  final int total;
+  final int upcoming;
+  final int low;
+  final int unavailable;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -279,10 +345,7 @@ class BcProfileScreen extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
+          );
   }
 }
 

@@ -57,7 +57,8 @@ class _BcLotFormScreenState extends ConsumerState<BcLotFormScreen> {
     if (_initDone) return;
     _initDone = true;
     if (_editing) {
-      final lots = ref.read(bcStockLotsProvider);
+      final lots =
+          ref.read(bcStockLotsProvider).asData?.value ?? const [];
       final lot = lots.where((l) => l.id == widget.lotId).firstOrNull;
       if (lot != null) {
         _bloodType = lot.bloodType;
@@ -116,28 +117,47 @@ class _BcLotFormScreenState extends ConsumerState<BcLotFormScreen> {
       return;
     }
     setState(() => _submitting = true);
-    final now = DateTime.now();
-    final lots = ref.read(bcStockLotsProvider);
-    final existing =
-        _editing ? lots.where((l) => l.id == widget.lotId).firstOrNull : null;
-    final lot = BloodStockLot(
-      id: existing?.id ?? 'lot-${now.millisecondsSinceEpoch}',
-      bloodCenterId: 'bc-a',
-      bloodType: _bloodType,
-      productType: _product,
-      lotReference: _refController.text.trim(),
-      quantity: _quantity,
-      expiryDate: _expiresAt!,
-      collectionDate: _collectedAt!,
-      provenance: _provenance,
-      internalNote:
-          _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
-      status: existing?.status ?? StockLotStatus.available,
-      createdAt: existing?.createdAt ?? now,
-      updatedAt: now,
-    );
-    ref.read(bcStockLotsProvider.notifier).upsert(lot);
-    if (mounted) context.go('/bc/stocks');
+    try {
+      final centerId =
+          ref.read(myBloodCenterProvider).asData?.value?.id;
+      if (centerId == null) {
+        throw StateError('Centre introuvable.');
+      }
+      final now = DateTime.now();
+      final lots =
+          ref.read(bcStockLotsProvider).asData?.value ?? const [];
+      final existing = _editing
+          ? lots.where((l) => l.id == widget.lotId).firstOrNull
+          : null;
+      await ref.read(bloodCenterDataRepositoryProvider).saveStockLot(
+            BloodStockLot(
+              id: existing?.id ?? '',
+              bloodCenterId: centerId,
+              bloodType: _bloodType,
+              productType: _product,
+              lotReference: _refController.text.trim(),
+              quantity: _quantity,
+              expiryDate: _expiresAt!,
+              collectionDate: _collectedAt!,
+              provenance: _provenance,
+              internalNote: _noteController.text.trim().isEmpty
+                  ? null
+                  : _noteController.text.trim(),
+              status: existing?.status ?? StockLotStatus.available,
+              createdAt: existing?.createdAt ?? now,
+              updatedAt: now,
+            ),
+          );
+      if (mounted) context.go('/bc/stocks');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Enregistrement impossible ($e).')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   Future<void> _delete() async {
@@ -170,13 +190,60 @@ class _BcLotFormScreenState extends ConsumerState<BcLotFormScreen> {
       ),
     );
     if (ok == true) {
-      ref.read(bcStockLotsProvider.notifier).remove(widget.lotId!);
-      if (mounted) context.go('/bc/stocks');
+      try {
+        await ref
+            .read(bloodCenterDataRepositoryProvider)
+            .deleteStockLot(widget.lotId!);
+        if (mounted) context.go('/bc/stocks');
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Suppression impossible ($e).')),
+          );
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final lotsAsync = ref.watch(bcStockLotsProvider);
+    final lots = lotsAsync.asData?.value ?? const <BloodStockLot>[];
+    final found =
+        !_editing || lots.any((l) => l.id == widget.lotId);
+    if (_editing && !found) {
+      return Scaffold(
+        backgroundColor: AppColors.ivoire,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppBackButton(
+                  onPressed: () => context.go('/bc/stocks'),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  lotsAsync.isLoading
+                      ? 'Chargement du lot…'
+                      : 'Lot introuvable.',
+                  style: const TextStyle(
+                    color: AppColors.encre,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (lotsAsync.isLoading) ...[
+                  const SizedBox(height: 16),
+                  const CircularProgressIndicator(),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     _initFromProviders();
     return Scaffold(
       backgroundColor: AppColors.ivoire,

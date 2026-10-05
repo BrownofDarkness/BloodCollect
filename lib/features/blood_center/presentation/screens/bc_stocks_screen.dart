@@ -37,9 +37,13 @@ class _BcStocksScreenState extends ConsumerState<BcStocksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lots = ref.watch(bcStockLotsProvider);
+    final lotsAsync = ref.watch(bcStockLotsProvider);
     final low = ref.watch(bcLowThresholdProvider);
     final unavailable = ref.watch(bcUnavailableThresholdProvider);
+    final loading = lotsAsync.isLoading;
+    final Object? error =
+        lotsAsync.hasError ? lotsAsync.error : null;
+    final lots = lotsAsync.asData?.value ?? const <BloodStockLot>[];
     final byType = unitsByBloodType(lots);
     final total = totalUnits(byType);
     final alertCount = byType.entries
@@ -53,7 +57,6 @@ class _BcStocksScreenState extends ConsumerState<BcStocksScreen> {
               StockAvailability.available,
         )
         .length;
-    final loading = ref.watch(bcMockReadyProvider).isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.ivoire,
@@ -167,8 +170,17 @@ class _BcStocksScreenState extends ConsumerState<BcStocksScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (loading)
-                const ListShimmer()
+              if (error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: BcErrorState(
+                    message: '$error',
+                    onRetry: () => refreshBcData(ref),
+                  ),
+                ),
+              if (error == null)
+                if (loading)
+                  const ListShimmer()
               else if (_tab == 2)
                 _ExpiryList(lots: lots)
               else
@@ -282,7 +294,17 @@ class _BcStocksScreenState extends ConsumerState<BcStocksScreen> {
       ),
     );
     if (ok == true) {
-      ref.read(bcStockLotsProvider.notifier).remove(lot.id);
+      try {
+        await ref
+            .read(bloodCenterDataRepositoryProvider)
+            .deleteStockLot(lot.id);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Suppression impossible ($e).')),
+          );
+        }
+      }
     }
   }
 
@@ -340,7 +362,7 @@ class _BcStocksScreenState extends ConsumerState<BcStocksScreen> {
               child: const Text('Annuler'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 final low = int.tryParse(lowCtrl.text) ?? -1;
                 final unav = int.tryParse(unavCtrl.text) ?? -1;
                 if (low <= 0 || unav < 0 || unav >= low) {
@@ -351,9 +373,33 @@ class _BcStocksScreenState extends ConsumerState<BcStocksScreen> {
                   );
                   return;
                 }
-                ref.read(bcLowThresholdProvider.notifier).set(low);
-                ref.read(bcUnavailableThresholdProvider.notifier).set(unav);
-                Navigator.of(dialogContext).pop(true);
+                final centerId = ref
+                    .read(myBloodCenterProvider)
+                    .asData
+                    ?.value
+                    ?.id;
+                if (centerId == null) {
+                  setDialogState(
+                    () => error = 'Centre introuvable.',
+                  );
+                  return;
+                }
+                try {
+                  await ref
+                      .read(bloodCenterDataRepositoryProvider)
+                      .updateCenterThresholds(
+                        centerId: centerId,
+                        low: low,
+                        unavailable: unav,
+                      );
+                  if (dialogContext.mounted) {
+                    Navigator.of(dialogContext).pop(true);
+                  }
+                } catch (e) {
+                  setDialogState(
+                    () => error = 'Enregistrement impossible ($e).',
+                  );
+                }
               },
               child: const Text(
                 'Enregistrer',
@@ -569,7 +615,7 @@ class _GroupCardState extends State<_GroupCard>
                       padding: const EdgeInsets.all(12),
                       child: OutlinedButton.icon(
                         onPressed: () => context.go(
-                          '/bc/stocks/new?type=${widget.type.label}',
+                          '/bc/stocks/new?type=${Uri.encodeComponent(widget.type.label)}',
                         ),
                         icon: const Icon(Icons.add_outlined),
                         label: Text(

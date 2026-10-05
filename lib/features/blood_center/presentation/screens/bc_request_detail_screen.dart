@@ -47,20 +47,30 @@ class _BcRequestDetailScreenState
     return min(demandBound, max(stockUnits, 1));
   }
 
-  void _validate() {
+  Future<void> _validate() async {
     if (_decision == null) {
       setState(() => _decisionError = 'Choisissez une décision.');
       return;
     }
-    final requests = ref.read(bcBloodRequestsProvider);
+    final requests =
+        ref.read(bcBloodRequestsProvider).asData?.value ?? const [];
     final request =
         requests.where((r) => r.id == widget.requestId).firstOrNull;
     if (request == null) return;
 
     // Garde-fous stock du centre de transfusion.
+    final lots =
+        ref.read(bcStockLotsProvider).asData?.value ?? const [];
     final stockUnits =
-        unitsByBloodType(ref.read(bcStockLotsProvider))[request.bloodType] ??
-            0;
+        unitsByBloodType(lots)[request.bloodType] ?? 0;
+    final centerId =
+        ref.read(myBloodCenterProvider).asData?.value?.id;
+    if (centerId == null) {
+      setState(
+        () => _decisionError = 'Centre introuvable.',
+      );
+      return;
+    }
     if (_decision == _Decision.approve &&
         stockUnits < request.quantityNeeded) {
       setState(
@@ -79,38 +89,72 @@ class _BcRequestDetailScreenState
     }
 
     final message = _messageController.text.trim();
-    final notifier = ref.read(bcBloodRequestsProvider.notifier);
-    switch (_decision!) {
-      case _Decision.approve:
-        notifier.decide(
-          id: request.id,
-          status: RequestStatus.fulfilled,
-          quantityGranted: request.quantityNeeded,
-          quantityFulfilled: request.quantityNeeded,
-          responseMessage: () => message.isEmpty ? null : message,
+    final repo = ref.read(bloodCenterDataRepositoryProvider);
+    BloodRequest decide({
+      required RequestStatus status,
+      int? quantityGranted,
+      int? quantityFulfilled,
+    }) {
+      return BloodRequest(
+        id: request.id,
+        healthCenterId: request.healthCenterId,
+        bloodType: request.bloodType,
+        productType: request.productType,
+        quantityNeeded: request.quantityNeeded,
+        quantityFulfilled: quantityFulfilled ?? request.quantityFulfilled,
+        patientReference: request.patientReference,
+        priority: request.priority,
+        status: status,
+        bloodRouteStep: BloodRouteStep.completed,
+        mobilizationRadius: request.mobilizationRadius,
+        matchedBloodCenterId: centerId,
+        quantityGranted: quantityGranted,
+        responseMessage: message.isEmpty ? null : message,
+        notes: request.notes,
+        createdAt: request.createdAt,
+        updatedAt: DateTime.now(),
+        receivedAt: request.receivedAt,
+        processedAt: DateTime.now(),
+        expiresAt: request.expiresAt,
+      );
+    }
+
+    try {
+      switch (_decision!) {
+        case _Decision.approve:
+          await repo.updateBloodRequest(
+            decide(
+              status: RequestStatus.fulfilled,
+              quantityGranted: request.quantityNeeded,
+              quantityFulfilled: request.quantityNeeded,
+            ),
+          );
+        case _Decision.partial:
+          final granted = (_granted ?? _maxPartial(request, stockUnits))
+              .clamp(1, _maxPartial(request, stockUnits));
+          await repo.updateBloodRequest(
+            decide(
+              status: RequestStatus.partiallyFulfilled,
+              quantityGranted: granted,
+              quantityFulfilled: granted,
+            ),
+          );
+        case _Decision.refuse:
+          await repo.updateBloodRequest(
+            decide(status: RequestStatus.cancelled),
+          );
+        case _Decision.orient:
+          await repo.updateBloodRequest(
+            decide(status: RequestStatus.oriented),
+          );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () => _decisionError = 'Enregistrement impossible ($e).',
         );
-      case _Decision.partial:
-        final granted = (_granted ?? _maxPartial(request, stockUnits))
-            .clamp(1, _maxPartial(request, stockUnits));
-        notifier.decide(
-          id: request.id,
-          status: RequestStatus.partiallyFulfilled,
-          quantityGranted: granted,
-          quantityFulfilled: granted,
-          responseMessage: () => message.isEmpty ? null : message,
-        );
-      case _Decision.refuse:
-        notifier.decide(
-          id: request.id,
-          status: RequestStatus.cancelled,
-          responseMessage: () => message.isEmpty ? null : message,
-        );
-      case _Decision.orient:
-        notifier.decide(
-          id: request.id,
-          status: RequestStatus.oriented,
-          responseMessage: () => message.isEmpty ? null : message,
-        );
+      }
+      return;
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -122,7 +166,8 @@ class _BcRequestDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    final requests = ref.watch(bcBloodRequestsProvider);
+    final requestsAsync = ref.watch(bcBloodRequestsProvider);
+    final requests = requestsAsync.asData?.value ?? const <BloodRequest>[];
     final request =
         requests.where((r) => r.id == widget.requestId).firstOrNull;
     if (request == null) {
@@ -138,9 +183,11 @@ class _BcRequestDetailScreenState
                   onPressed: () => context.go('/bc/requests'),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Demande introuvable.',
-                  style: TextStyle(
+                Text(
+                  requestsAsync.isLoading
+                      ? 'Chargement de la demande…'
+                      : 'Demande introuvable.',
+                  style: const TextStyle(
                     color: AppColors.encre,
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -153,9 +200,12 @@ class _BcRequestDetailScreenState
       );
     }
 
-    final names = ref.watch(bcHealthCenterNamesProvider);
-    final contacts = ref.watch(bcRequestContactsProvider);
-    final lots = ref.watch(bcStockLotsProvider);
+    final names =
+        ref.watch(bcHealthCenterNamesProvider).asData?.value ?? const {};
+    final phones =
+        ref.watch(bcHealthCenterPhonesProvider).asData?.value ?? const {};
+    final lots =
+        ref.watch(bcStockLotsProvider).asData?.value ?? const [];
     final low = ref.watch(bcLowThresholdProvider);
     final unavailable = ref.watch(bcUnavailableThresholdProvider);
     final byType = unitsByBloodType(lots);
@@ -303,7 +353,8 @@ class _BcRequestDetailScreenState
                               Expanded(
                                 child: _Info(
                                   label: 'Contact',
-                                  value: contacts[request.id] ?? '—',
+                                  value: phones[request.healthCenterId] ??
+                                      '—',
                                 ),
                               ),
                             ],
