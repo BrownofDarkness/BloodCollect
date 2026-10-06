@@ -43,6 +43,37 @@ class BloodCenter {
 
   bool get isVerified => verificationStatus == VerificationStatus.verified;
 
+  /// Ouverture à l'instant [now], d'après les horaires déclarés : semaine du
+  /// lundi au vendredi, samedi si renseigné, fermé le dimanche. Null si les
+  /// horaires du jour ne sont pas lisibles (saisie libre).
+  OpeningStatus? openingAt(DateTime now) {
+    final String? hours;
+    if (now.weekday == DateTime.sunday) {
+      return const OpeningStatus(isOpen: false);
+    } else if (now.weekday == DateTime.saturday) {
+      hours = openingHoursSaturday;
+      if (hours == null || hours.isEmpty) {
+        return const OpeningStatus(isOpen: false);
+      }
+    } else {
+      hours = openingHoursWeekdays;
+    }
+
+    // « 7h30 – 16h00 », « 07h-18h » : deux heures, minutes facultatives.
+    final times = RegExp(r'(\d{1,2})\s*h\s*(\d{2})?').allMatches(hours);
+    if (times.length != 2) return null;
+    int minutesOf(RegExpMatch m) =>
+        int.parse(m.group(1)!) * 60 + int.parse(m.group(2) ?? '0');
+    final opens = minutesOf(times.first);
+    final closes = minutesOf(times.last);
+    final current = now.hour * 60 + now.minute;
+
+    return OpeningStatus(
+      isOpen: current >= opens && current < closes,
+      closesAtMinutes: closes,
+    );
+  }
+
   BloodCenter copyWith({
     String? id,
     String? userId,
@@ -84,4 +115,15 @@ class BloodCenter {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+}
+
+// État d'ouverture d'un centre à un instant donné. Non persisté.
+class OpeningStatus {
+  const OpeningStatus({required this.isOpen, this.closesAtMinutes});
+
+  final bool isOpen;
+
+  /// Heure de fermeture du jour, en minutes depuis minuit ; null si le
+  /// centre est fermé toute la journée.
+  final int? closesAtMinutes;
 }

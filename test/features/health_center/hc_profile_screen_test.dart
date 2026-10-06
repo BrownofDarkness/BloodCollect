@@ -190,13 +190,13 @@ void main() {
     expect(find.text('AUT-778'), findsOneWidget);
   });
 
-  testWidgets('signale les rubriques pas encore disponibles', (tester) async {
+  testWidgets('masque les rubriques indisponibles en v1', (tester) async {
     await pumpScreen(tester);
 
-    await tester.tap(find.text('Membres de l’équipe'));
-    await tester.pump();
-
-    expect(find.text('Bientôt disponible.'), findsOneWidget);
+    expect(find.text('Membres de l’équipe'), findsNothing);
+    expect(find.text('Notifications'), findsNothing);
+    expect(find.text('Aide et contact'), findsNothing);
+    expect(find.text('Responsable du compte'), findsOneWidget);
   });
 
   testWidgets('mène à l’historique des demandes', (tester) async {

@@ -13,8 +13,8 @@ import '../../../../shared/domain/entities/blood_center.dart';
 import '../../../../shared/domain/entities/blood_request.dart';
 import '../../../auth/presentation/widgets/register_form_fields.dart';
 import '../providers/hc_providers.dart';
-import '../widgets/availability_level_style.dart';
-import '../widgets/blood_request_form_fields.dart';
+import '../../../../shared/presentation/widgets/availability_level_style.dart';
+import '../../../../shared/presentation/widgets/request_form_fields.dart';
 import '../widgets/hc_role_badge.dart';
 
 // Onglet « Sang » — Demande de sang.

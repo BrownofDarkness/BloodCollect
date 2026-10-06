@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Accès réseau : Firebase (Auth, Firestore). Le manifeste debug ne
+         couvre pas les builds release. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="BloodCollect"
         android:name="${applicationName}"
@@ -40,6 +43,12 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- url_launcher : bouton « Appeler » (ouvre le composeur, sans
+             permission CALL_PHONE). -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="tel"/>
         </intent>
     </queries>
 </manifest>

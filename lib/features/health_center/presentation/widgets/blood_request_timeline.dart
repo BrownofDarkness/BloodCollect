@@ -7,7 +7,12 @@ import 'request_progress_style.dart';
 
 enum _StepState { done, current, upcoming }
 
-/// Frise de suivi : Transmise → Reçue → En cours de traitement → Décision.
+/// Frise de suivi : Transmise → Décision.
+///
+/// « Reçue » et « En cours de traitement » ne s'affichent que si le centre
+/// de transfusion les a réellement enregistrées (receivedAt, statut routing).
+/// En v1 il n'écrit que sa décision : les déduire afficherait des étapes
+/// vertes sans retour réel.
 class BloodRequestTimeline extends StatelessWidget {
   const BloodRequestTimeline({super.key, required this.request});
 
@@ -27,22 +32,18 @@ class BloodRequestTimeline extends StatelessWidget {
         title: 'Transmise',
         detail: Formatters.timeOrDate(request.createdAt),
       ),
-      _Step(
-        state: request.isReceived ? _StepState.done : _StepState.upcoming,
-        title: 'Reçue par le centre',
-        detail: receivedAt == null ? null : Formatters.timeOrDate(receivedAt),
-      ),
-      _Step(
-        state: decidedAt != null
-            ? _StepState.done
-            : processing
-                ? _StepState.current
-                : _StepState.upcoming,
-        title: 'En cours de traitement',
-        detail: processing
-            ? 'Depuis ${Formatters.timeOrDate(request.updatedAt)}'
-            : null,
-      ),
+      if (receivedAt != null)
+        _Step(
+          state: _StepState.done,
+          title: 'Reçue par le centre',
+          detail: Formatters.timeOrDate(receivedAt),
+        ),
+      if (processing)
+        _Step(
+          state: _StepState.current,
+          title: 'En cours de traitement',
+          detail: 'Depuis ${Formatters.timeOrDate(request.updatedAt)}',
+        ),
       if (decidedAt == null)
         const _Step(
           state: _StepState.upcoming,

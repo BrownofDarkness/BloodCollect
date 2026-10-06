@@ -7,11 +7,11 @@ import '../../../../core/constants/app_enums.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/app_back_button.dart';
 import '../../../../shared/domain/entities/donor_candidate.dart';
+import '../../../../shared/domain/entities/donor_contact_selection.dart';
 import '../../../../shared/domain/entities/donor_search_criteria.dart';
 import '../providers/hc_providers.dart';
 import '../widgets/donor_candidate_card.dart';
 import '../widgets/hc_role_badge.dart';
-import 'hc_donor_contact_screen.dart';
 
 // Onglet « Donneurs » — Donneurs potentiels · sélection multiple.
 // Le centre coche les donneurs anonymisés à solliciter, puis précise sa

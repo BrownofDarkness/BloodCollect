@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
-import '../../../../core/errors/auth_error_messages.dart';
-import '../../../../core/errors/auth_exceptions.dart';
+import '../../../../core/constants/app_info.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../shared/domain/entities/app_user.dart';
 import '../../../../shared/domain/entities/blood_request.dart';
@@ -13,7 +12,8 @@ import '../../../../shared/domain/entities/health_center.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/hc_providers.dart';
 import '../widgets/hc_role_badge.dart';
-import '../widgets/profile_menu_section.dart';
+import '../../../../shared/presentation/widgets/password_reset_dialog.dart';
+import '../../../../shared/presentation/widgets/profile_menu_section.dart';
 
 // Onglet « Profil » — Profil centre de santé.
 // Fiche de l'établissement, compteurs de demandes et menu du compte.
@@ -22,52 +22,9 @@ import '../widgets/profile_menu_section.dart';
 class HcProfileScreen extends ConsumerWidget {
   const HcProfileScreen({super.key});
 
-  // À aligner sur `version` de pubspec.yaml.
-  static const _appVersion = '1.0';
-
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
     await ref.read(authRepositoryProvider).signOut();
     if (context.mounted) context.go(AppRoutes.welcome);
-  }
-
-  Future<void> _resetPassword(
-    BuildContext context,
-    WidgetRef ref,
-    String email,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text('Changer le mot de passe'),
-        content: Text(
-          'Un lien de réinitialisation sera envoyé à $email.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Envoyer le lien'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-
-    String message;
-    try {
-      await ref.read(authRepositoryProvider).sendPasswordResetEmail(email);
-      message = 'Lien envoyé à $email.';
-    } on AuthException catch (e) {
-      message = authErrorMessage(e);
-    } catch (_) {
-      message = 'Envoi impossible. Vérifiez votre connexion puis réessayez.';
-    }
-    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _comingSoon(BuildContext context) {
@@ -125,7 +82,7 @@ class HcProfileScreen extends ConsumerWidget {
                         center: center,
                         onComingSoon: () => _comingSoon(context),
                         onResetPassword: (email) =>
-                            _resetPassword(context, ref, email),
+                            confirmPasswordReset(context, ref, email),
                       ),
               ),
               const SizedBox(height: 24),
@@ -148,7 +105,7 @@ class HcProfileScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               const Center(
                 child: Text(
-                  'BloodCollect · version $_appVersion',
+                  AppInfo.versionLabel,
                   style: TextStyle(color: AppColors.gris, fontSize: 13),
                 ),
               ),
@@ -181,7 +138,11 @@ class _ProfileContent extends ConsumerWidget {
       backgroundColor: Colors.white,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (_) => _DetailsSheet(title: title, fields: fields),
+      // Toute la largeur : sans cela la feuille se réduit à son contenu.
+      builder: (_) => SizedBox(
+        width: double.infinity,
+        child: _DetailsSheet(title: title, fields: fields),
+      ),
     );
   }
 
@@ -270,12 +231,8 @@ class _ProfileContent extends ConsumerWidget {
                 ('Email', email ?? ''),
               ]),
             ),
-            ProfileMenuItem(
-              icon: Icons.group_outlined,
-              title: 'Membres de l’équipe',
-              subtitle: 'Personnel autorisé à créer des demandes',
-              onTap: onComingSoon,
-            ),
+            // « Membres de l'équipe » : masqué en v1, le modèle ne gère
+            // pas encore plusieurs comptes par centre.
           ],
         ),
         const SizedBox(height: 24),
@@ -290,7 +247,7 @@ class _ProfileContent extends ConsumerWidget {
             ProfileMenuItem(
               icon: Icons.near_me_outlined,
               title: 'Historique des mises en relation',
-              onTap: onComingSoon,
+              onTap: () => context.go(AppRoutes.hcDonorMatches),
             ),
           ],
         ),
@@ -298,12 +255,8 @@ class _ProfileContent extends ConsumerWidget {
         ProfileMenuSection(
           title: 'PARAMÈTRES',
           items: [
-            ProfileMenuItem(
-              icon: Icons.notifications_outlined,
-              title: 'Notifications',
-              subtitle: 'Réponses des centres, donneurs',
-              onTap: onComingSoon,
-            ),
+            // « Notifications » : masqué en v1, aucune notification n'est
+            // encore envoyée (Cloud Functions à venir).
             ProfileMenuItem(
               icon: Icons.lock_outline,
               title: 'Mot de passe et sécurité',
@@ -311,11 +264,7 @@ class _ProfileContent extends ConsumerWidget {
                   ? onComingSoon
                   : () => onResetPassword(email),
             ),
-            ProfileMenuItem(
-              icon: Icons.help_outline,
-              title: 'Aide et contact',
-              onTap: onComingSoon,
-            ),
+            // « Aide et contact » : masqué en v1, pas encore de contenu.
           ],
         ),
       ],

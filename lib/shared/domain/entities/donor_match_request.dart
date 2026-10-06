@@ -37,7 +37,17 @@ class DonorMatchRequest {
   final DateTime expiresAt;
   final DateTime createdAt;
 
+  /// Délai laissé au donneur pour répondre avant expiration de la demande.
+  static const responseWindow = Duration(hours: 24);
+
   bool get isAutoRouting => bloodRequestId != null;
+
+  /// Statut à afficher : une sollicitation restée sans réponse au-delà de
+  /// son délai est lue comme expirée, même si rien ne l'a mise à jour.
+  DonorMatchStatus statusAt(DateTime now) =>
+      status == DonorMatchStatus.pending && expiresAt.isBefore(now)
+          ? DonorMatchStatus.expired
+          : status;
 
   DonorMatchRequest copyWith({
     String? id,

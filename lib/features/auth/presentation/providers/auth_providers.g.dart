@@ -203,7 +203,7 @@ final class CurrentAppUserProvider
   }
 }
 
-String _$currentAppUserHash() => r'442589a46ad80a1beee4fe0335c251cc0e92f04c';
+String _$currentAppUserHash() => r'bdb041bf904f1153866d0082b746fa88bf934373';
 
 @ProviderFor(currentUserRole)
 final currentUserRoleProvider = CurrentUserRoleProvider._();

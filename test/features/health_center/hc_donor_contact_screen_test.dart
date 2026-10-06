@@ -73,6 +73,9 @@ class _FakeDonorMatchRepository implements DonorMatchRepository {
     if (fail) throw Exception('hors ligne');
     created.addAll(requests);
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
