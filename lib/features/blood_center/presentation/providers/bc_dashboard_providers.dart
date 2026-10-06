@@ -7,6 +7,7 @@ import '../../../../shared/domain/entities/blood_request.dart';
 import '../../../../shared/domain/entities/blood_stock_lot.dart';
 import '../../../../shared/domain/entities/campaign.dart';
 import '../../../../shared/domain/repositories/blood_center_data_repository.dart';
+import '../../../../shared/presentation/providers/repository_providers.dart';
 
 // Providers temps réel (Firestore). Remplacent les mocks de l'étape 1.
 // Chaque stream charge indépendamment : shimmer par écran à la première
@@ -59,6 +60,26 @@ final bcCampaignsProvider = StreamProvider<List<Campaign>>((ref) async* {
       .watchCampaigns(center.id);
 });
 
+/// id de campagne -> nombre de donneurs inscrits (inscriptions actives :
+/// une participation annulée n'est plus comptée).
+final bcCampaignRegisteredCountsProvider =
+    StreamProvider<Map<String, int>>((ref) async* {
+  final repository = ref.watch(campaignRegistrationRepositoryProvider);
+  final center = await ref.watch(myBloodCenterProvider.future);
+  if (center == null) {
+    yield const {};
+    return;
+  }
+  yield* repository.watchByBloodCenter(center.id).map((registrations) {
+    final counts = <String, int>{};
+    for (final registration in registrations) {
+      if (!registration.isActive) continue;
+      counts.update(registration.campaignId, (n) => n + 1, ifAbsent: () => 1);
+    }
+    return counts;
+  });
+});
+
 /// id -> nom des centres de santé (jointure d'affichage).
 final bcHealthCenterNamesProvider =
     StreamProvider<Map<String, String>>((ref) {
@@ -100,6 +121,7 @@ Future<void> refreshBcData(WidgetRef ref) async {
   ref.invalidate(bcStockLotsProvider);
   ref.invalidate(bcBloodRequestsProvider);
   ref.invalidate(bcCampaignsProvider);
+  ref.invalidate(bcCampaignRegisteredCountsProvider);
   ref.invalidate(bcHealthCenterNamesProvider);
   ref.invalidate(bcHealthCenterPhonesProvider);
   // Laisse le shimmer visible un instant (retour visuel).

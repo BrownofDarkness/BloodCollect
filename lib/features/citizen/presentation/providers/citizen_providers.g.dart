@@ -654,7 +654,7 @@ final class BloodAvailabilityListProvider
 }
 
 String _$bloodAvailabilityListHash() =>
-    r'3b23a75f5522b6c216ad1e28897e7a43958eec7d';
+    r'cc143a6a33a5ce638640469e81a97f7d1f5dcc07';
 
 /// Onglet « Sang » : la liste dépend des filtres, donc chaque changement de
 /// filtre invalide et relance la requête.

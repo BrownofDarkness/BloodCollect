@@ -250,51 +250,23 @@ class _ProfileBody extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              const _SectionTitle('GESTION'),
-              const SizedBox(height: 8),
-              _Group(
-                rows: [
-                  _Row(
-                    icon: Icons.tune_outlined,
-                    title: 'Seuils d’alerte des stocks',
-                    subtitle:
-                        'Limitée sous $low · indisponible sous $unavailable',
-                  ),
-                  _Row(
-                    icon: Icons.redo_outlined,
-                    title: 'Centres partenaires',
-                    subtitle: 'Pour orienter les demandes',
-                    badge: '2',
-                  ),
-                  _Row(
-                    icon: Icons.group_outlined,
-                    title: 'Membres de l’équipe',
-                    subtitle: 'Accès stocks, demandes, collectes',
-                    badge: '5',
-                  ),
-                ],
-              ),
+              // Section « GESTION » masquée en v1 : ses lignes (seuils d'alerte
+              // des stocks, centres partenaires, membres de l'équipe) n'ouvrent
+              // encore aucun écran. [low] et [unavailable] restent transmis
+              // pour la réafficher sans autre changement.
               const SizedBox(height: 20),
               const _SectionTitle('PARAMÈTRES'),
               const SizedBox(height: 8),
               _Group(
                 rows: const [
-                  _Row(
-                    icon: Icons.notifications_outlined,
-                    title: 'Notifications',
-                    subtitle: 'Nouvelles demandes, péremptions',
-                  ),
+                  // « Notifications » : masqué en v1, aucune notification
+                  // n'est encore envoyée (Cloud Functions à venir).
                   _Row(
                     icon: Icons.lock_outlined,
                     title: 'Mot de passe et sécurité',
                     subtitle: null,
                   ),
-                  _Row(
-                    icon: Icons.help_outlined,
-                    title: 'Aide et contact',
-                    subtitle: null,
-                  ),
+                  // « Aide et contact » : masqué en v1, pas encore de contenu.
                 ],
               ),
               const SizedBox(height: 16),
@@ -438,6 +410,8 @@ class _Row {
     required this.icon,
     required this.title,
     required this.subtitle,
+    // Utilisé par la section « GESTION », masquée en v1.
+    // ignore: unused_element_parameter
     this.badge,
   });
 

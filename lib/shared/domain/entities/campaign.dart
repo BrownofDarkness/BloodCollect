@@ -41,6 +41,16 @@ class Campaign {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Visible des citoyens : publiée ou en cours, et pas encore terminée.
+  bool isOpenAt(DateTime now) =>
+      (status == CampaignStatus.published ||
+          status == CampaignStatus.active) &&
+      endDate.isAfter(now);
+
+  /// La collecte se tient dans [commune] ou la cible explicitement.
+  bool concernsCommune(String commune) =>
+      this.commune == commune || targetCommunes.contains(commune);
+
   Campaign copyWith({
     String? id,
     String? bloodCenterId,

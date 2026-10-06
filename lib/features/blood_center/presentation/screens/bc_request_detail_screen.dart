@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_back_button.dart';
 import '../../../../shared/domain/entities/blood_request.dart';
 import '../../domain/blood_center_stats.dart';
@@ -45,6 +46,59 @@ class _BcRequestDetailScreenState
     final demandBound =
         request.quantityNeeded > 1 ? request.quantityNeeded - 1 : 1;
     return min(demandBound, max(stockUnits, 1));
+  }
+
+  /// Dernière étape avant l'enregistrement : rappelle la décision choisie et
+  /// prévient qu'elle est définitive.
+  Future<bool> _confirm(BloodRequest request, int granted) async {
+    final summary = switch (_decision!) {
+      _Decision.approve =>
+        'Approuver la demande : ${request.quantityNeeded} '
+            'poche${request.quantityNeeded > 1 ? 's' : ''} '
+            '${request.bloodType.label}.',
+      _Decision.partial =>
+        'Approuver partiellement : $granted poche${granted > 1 ? 's' : ''} '
+            'sur ${request.quantityNeeded} ${request.bloodType.label}.',
+      _Decision.refuse => 'Refuser la demande.',
+      _Decision.orient => 'Orienter la demande vers un autre centre.',
+    };
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        icon: const Icon(
+          Icons.warning_amber_rounded,
+          color: AppColors.rouge,
+          size: 32,
+        ),
+        title: const Text('Décision irréversible'),
+        content: Text(
+          '$summary\n\n'
+          'Une fois validée, cette décision ne pourra plus être modifiée ni '
+          'annulée. Le centre de santé en sera informé.',
+          style: const TextStyle(
+            color: AppColors.encre,
+            fontSize: 15,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Revenir'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.rouge),
+            child: const Text(
+              'Confirmer',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
   }
 
   Future<void> _validate() async {
@@ -88,6 +142,16 @@ class _BcRequestDetailScreenState
       return;
     }
 
+    // Une demande déjà traitée ne se rejoue pas (écran resté ouvert, etc.).
+    if (!request.isAwaitingDecision) {
+      setState(() => _decisionError = 'Cette demande a déjà été traitée.');
+      return;
+    }
+    final granted = (_granted ?? _maxPartial(request, stockUnits))
+        .clamp(1, _maxPartial(request, stockUnits));
+    final confirmed = await _confirm(request, granted);
+    if (!confirmed || !mounted) return;
+
     final message = _messageController.text.trim();
     final repo = ref.read(bloodCenterDataRepositoryProvider);
     BloodRequest decide({
@@ -130,8 +194,6 @@ class _BcRequestDetailScreenState
             ),
           );
         case _Decision.partial:
-          final granted = (_granted ?? _maxPartial(request, stockUnits))
-              .clamp(1, _maxPartial(request, stockUnits));
           await repo.updateBloodRequest(
             decide(
               status: RequestStatus.partiallyFulfilled,
@@ -407,6 +469,10 @@ class _BcRequestDetailScreenState
                 ),
               ),
               const SizedBox(height: 20),
+              // Demande déjà traitée : la décision est affichée en lecture seule.
+              if (!request.isAwaitingDecision)
+                _DecisionSummary(request: request)
+              else ...[
               const Text(
                 'DÉCISION',
                 style: TextStyle(
@@ -576,21 +642,130 @@ class _BcRequestDetailScreenState
                   children: [
                     Icon(Icons.check_outlined, size: 20),
                     SizedBox(width: 8),
-                    Text(
-                      'Valider la décision',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                    Flexible(
+                      child: Text(
+                        'Valider la décision',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
+              ],
               const SizedBox(height: 8),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Décision déjà rendue, en lecture seule : une demande traitée n'est plus
+/// modifiable par le centre de transfusion.
+class _DecisionSummary extends StatelessWidget {
+  const _DecisionSummary({required this.request});
+
+  final BloodRequest request;
+
+  @override
+  Widget build(BuildContext context) {
+    final (title, color) = switch (request.progress) {
+      RequestProgress.approved => ('Demande approuvée', AppColors.disponible),
+      RequestProgress.partial => (
+          'Demande approuvée partiellement',
+          AppColors.limite,
+        ),
+      RequestProgress.refused => ('Demande refusée', AppColors.rouge),
+      RequestProgress.oriented => (
+          'Demande orientée vers un autre centre',
+          AppColors.violet,
+        ),
+      RequestProgress.cancelled => (
+          'Demande annulée par le centre de santé',
+          AppColors.gris,
+        ),
+      _ => ('Demande expirée', AppColors.gris),
+    };
+    final granted = request.quantityGranted;
+    final message = request.responseMessage;
+    final decidedAt = request.decidedAt;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'DÉCISION RENDUE',
+          style: TextStyle(
+            color: AppColors.gris,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color, width: 1.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (decidedAt != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Le ${Formatters.longDay(decidedAt)} à '
+                  '${Formatters.hour(decidedAt)}',
+                  style: const TextStyle(color: AppColors.gris, fontSize: 14),
+                ),
+              ],
+              if (granted != null) ...[
+                const SizedBox(height: 12),
+                _Info(
+                  label: 'Quantité accordée',
+                  value: '$granted poche${granted > 1 ? 's' : ''} '
+                      'sur ${request.quantityNeeded}',
+                ),
+              ],
+              if (message != null && message.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _Info(label: 'Message au centre de santé', value: message),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.lock_outline, color: AppColors.gris, size: 18),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Cette demande est traitée : la décision n’est plus '
+                'modifiable.',
+                style: TextStyle(color: AppColors.gris, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

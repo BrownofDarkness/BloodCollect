@@ -4,15 +4,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
-import '../../../../core/constants/app_locations.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/app_back_button.dart';
 import '../../../../shared/domain/entities/donor_search_criteria.dart';
+import '../../../../shared/presentation/widgets/donor_zone_selector.dart';
+import '../../../../shared/presentation/widgets/request_form_fields.dart';
 import '../../../auth/presentation/widgets/register_form_fields.dart';
 import '../providers/hc_providers.dart';
-import '../widgets/blood_request_form_fields.dart';
 import '../widgets/hc_role_badge.dart';
-import '../widgets/selectable_pill.dart';
 
 // Onglet « Donneurs » — Chercher un donneur.
 // Le centre de santé définit groupe, zone, urgence et nombre de donneurs.
@@ -37,42 +36,20 @@ class _HcDonorSearchScreenState extends ConsumerState<HcDonorSearchScreen> {
   Priority _priority = Priority.normal;
   int _donorCount = _defaultDonorCount;
 
-  CountryInfo _countryOf(String? city) => AppLocations.countries.firstWhere(
-        (c) => c.cities.containsKey(city),
-        orElse: () => AppLocations.countries.first,
-      );
-
-  // « D’ABIDJAN », « DE BOUAKÉ ».
-  static String _communesTitle(String city) {
-    final elided = RegExp(r'^[AEIOUÉÈÊH]', caseSensitive: false).hasMatch(city);
-    return 'COMMUNES ${elided ? 'D’' : 'DE '}${city.toUpperCase()}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final healthCenter = ref.watch(currentHealthCenterProvider).value;
-    final country = _countryOf(_city ?? healthCenter?.city);
-    final homeCity = healthCenter?.city;
-    final city = _city ??
-        (country.cities.containsKey(homeCity)
-            ? homeCity!
-            : country.cities.keys.first);
-    final communes = country.cities[city] ?? const <String>[];
-    final selected = _communes ??
-        {
-          if (healthCenter != null &&
-              healthCenter.city == city &&
-              communes.contains(healthCenter.commune))
-            healthCenter.commune,
-        };
-    final allSelected =
-        communes.isNotEmpty && selected.containsAll(communes);
+    final zone = DonorZone.resolve(
+      city: _city,
+      selected: _communes,
+      homeCity: healthCenter?.city,
+      homeCommune: healthCenter?.commune,
+    );
 
     final criteria = DonorSearchCriteria(
       bloodType: _bloodType,
-      city: city,
-      // Ordre du référentiel, indépendant de l'ordre des clics.
-      communes: communes.where(selected.contains).toList(),
+      city: zone.city,
+      communes: zone.selectedInOrder,
       priority: _priority,
       donorCount: _donorCount,
     );
@@ -121,76 +98,14 @@ class _HcDonorSearchScreenState extends ConsumerState<HcDonorSearchScreen> {
                 onChanged: (v) => setState(() => _bloodType = v),
               ),
               const SizedBox(height: 24),
-              const SectionTitle('VILLES'),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final c in country.cities.keys)
-                    SelectablePill(
-                      label: c,
-                      selected: c == city,
-                      onTap: () => setState(() {
-                        if (c == city) return;
-                        _city = c;
-                        _communes = {};
-                      }),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SectionTitle(_communesTitle(city)),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      switch (selected.length) {
-                        0 => 'Aucune commune sélectionnée',
-                        1 => '1 commune sélectionnée',
-                        final n => '$n communes sélectionnées',
-                      },
-                      style: const TextStyle(
-                        color: AppColors.slate,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => setState(
-                      () => _communes = allSelected ? {} : communes.toSet(),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.bleu,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    child: Text(
-                      allSelected ? 'Tout désélectionner' : 'Tout sélectionner',
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final c in communes)
-                    SelectablePill(
-                      label: c,
-                      selected: selected.contains(c),
-                      onTap: () => setState(() {
-                        final next = Set.of(selected);
-                        if (!next.remove(c)) next.add(c);
-                        _communes = next;
-                      }),
-                    ),
-                ],
+              DonorZoneSelector(
+                zone: zone,
+                onCityChanged: (city) => setState(() {
+                  _city = city;
+                  _communes = {};
+                }),
+                onCommunesChanged: (communes) =>
+                    setState(() => _communes = communes),
               ),
               const SizedBox(height: 24),
               const SectionTitle('NIVEAU D’URGENCE'),

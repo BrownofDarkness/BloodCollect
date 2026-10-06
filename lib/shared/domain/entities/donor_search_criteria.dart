@@ -1,6 +1,6 @@
 import '../../../core/constants/app_enums.dart';
 
-// Critères d'une recherche de donneurs par un centre de santé.
+// Critères d'une recherche de donneurs (citoyen ou centre de santé).
 // Non persisté : la sélection des donneurs se fait côté serveur, qui ne
 // renvoie que des profils anonymisés (groupe + commune + distance).
 class DonorSearchCriteria {
@@ -9,7 +9,7 @@ class DonorSearchCriteria {
     required this.city,
     required this.communes,
     required this.priority,
-    required this.donorCount,
+    this.donorCount = 1,
   });
 
   final BloodType bloodType;
@@ -17,6 +17,7 @@ class DonorSearchCriteria {
   // Au moins une commune de [city].
   final List<String> communes;
   final Priority priority;
+  // Nombre de donneurs souhaités : 1 par défaut (recherche d'un citoyen).
   final int donorCount;
 
   bool get isValid => city.isNotEmpty && communes.isNotEmpty && donorCount > 0;

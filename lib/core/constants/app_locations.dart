@@ -15,6 +15,13 @@ class CountryInfo {
 }
 
 abstract final class AppLocations {
+  /// Pays qui contient [city] ; le premier du référentiel si elle est
+  /// inconnue ou absente.
+  static CountryInfo countryOfCity(String? city) => countries.firstWhere(
+        (country) => country.cities.containsKey(city),
+        orElse: () => countries.first,
+      );
+
   static const List<CountryInfo> countries = [
     CountryInfo(
       name: "Côte d’Ivoire",

@@ -138,7 +138,8 @@ void main() {
 
     expect(find.text('Demander du sang à ce centre'), findsOneWidget);
     expect(find.text('Appeler'), findsOneWidget);
-    expect(find.text('Itinéraire'), findsOneWidget);
+    // « Itinéraire » est masqué en v1 dans tous les espaces.
+    expect(find.text('Itinéraire'), findsNothing);
   });
 
   testWidgets('signale un centre introuvable', (tester) async {

@@ -8,6 +8,7 @@ import 'package:blood_collect/features/health_center/presentation/screens/hc_hom
 import 'package:blood_collect/shared/domain/entities/entities.dart';
 import 'package:blood_collect/shared/domain/repositories/blood_request_repository.dart';
 import 'package:blood_collect/shared/domain/repositories/center_repository.dart';
+import 'package:blood_collect/shared/domain/repositories/donor_match_repository.dart';
 import 'package:blood_collect/shared/domain/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -117,11 +118,43 @@ class _FakeBloodRequestRepository implements BloodRequestRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _FakeDonorMatchRepository implements DonorMatchRepository {
+  _FakeDonorMatchRepository(this.matches);
+
+  final List<DonorMatchRequest> matches;
+
+  @override
+  Stream<List<DonorMatchRequest>> watchByRequester(String requesterId) =>
+      Stream.value(matches);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+DonorMatchRequest _match(
+  String id,
+  DonorMatchStatus status, {
+  Duration expiresIn = const Duration(hours: 20),
+}) =>
+    DonorMatchRequest(
+      id: id,
+      requesterId: 'u1',
+      donorId: 'donor-$id',
+      bloodType: BloodType.oPos,
+      priority: Priority.normal,
+      status: status,
+      shareContact: true,
+      notifiedAt: _now,
+      expiresAt: _now.add(expiresIn),
+      createdAt: _now,
+    );
+
 void main() {
   Future<void> pumpScreen(
     WidgetTester tester,
-    List<BloodRequest> requests,
-  ) async {
+    List<BloodRequest> requests, {
+    List<DonorMatchRequest> matches = const [],
+  }) async {
     tester.view.physicalSize = const Size(390, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -138,6 +171,7 @@ void main() {
         stub(AppRoutes.hcDonors, 'écran donneurs'),
         stub(AppRoutes.hcBlood, 'écran sang'),
         stub(AppRoutes.hcRequests, 'écran demandes'),
+        stub(AppRoutes.hcDonorMatches, 'écran mises en relation'),
       ],
     );
     addTearDown(router.dispose);
@@ -152,6 +186,8 @@ void main() {
           centerRepositoryProvider.overrideWithValue(_FakeCenterRepository()),
           bloodRequestRepositoryProvider
               .overrideWithValue(_FakeBloodRequestRepository(requests)),
+          donorMatchRepositoryProvider
+              .overrideWithValue(_FakeDonorMatchRepository(matches)),
         ],
         child: MaterialApp.router(theme: AppTheme.light, routerConfig: router),
       ),
@@ -233,6 +269,32 @@ void main() {
     await tester.tap(find.text('Tout voir'));
     await tester.pumpAndSettle();
     expect(find.text('écran demandes'), findsOneWidget);
+  });
+
+  testWidgets('résume les réponses des donneurs et y mène', (tester) async {
+    await pumpScreen(tester, const []);
+    expect(find.text('Réponses des donneurs'), findsNothing);
+
+    await pumpScreen(
+      tester,
+      const [],
+      matches: [
+        _match('1', DonorMatchStatus.accepted),
+        _match('2', DonorMatchStatus.accepted),
+        _match('3', DonorMatchStatus.pending),
+        // En attente mais délai dépassé : comptée comme expirée.
+        _match(
+          '4',
+          DonorMatchStatus.pending,
+          expiresIn: const Duration(hours: -1),
+        ),
+      ],
+    );
+    expect(find.text('2 acceptées · 1 en attente'), findsOneWidget);
+
+    await tester.tap(find.text('Réponses des donneurs'));
+    await tester.pumpAndSettle();
+    expect(find.text('écran mises en relation'), findsOneWidget);
   });
 
   testWidgets('affiche des compteurs à zéro sans demande', (tester) async {

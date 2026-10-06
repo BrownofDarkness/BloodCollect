@@ -29,12 +29,13 @@ Stream<AuthUser?> authState(Ref ref) {
 // Profil users du connecté en temps réel (null si déconnecté ou absent).
 @riverpod
 Stream<AppUser?> currentAppUser(Ref ref) async* {
+  final repository = ref.watch(userRepositoryProvider);
   final user = await ref.watch(authStateProvider.future);
   if (user == null) {
     yield null;
     return;
   }
-  yield* ref.watch(userRepositoryProvider).watchById(user.id);
+  yield* repository.watchById(user.id);
 }
 
 // Rôle du connecté en temps réel : suit la création du doc users, donc pas de null figé pendant les écritures d'inscription.
