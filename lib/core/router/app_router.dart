@@ -6,7 +6,6 @@ import '../../features/citizen/presentation/providers/donor_providers.dart';
 import '../../shared/presentation/models/donor_search_candidate.dart';
 import '../config/backend_config.dart';
 import '../constants/app_enums.dart';
-import '../widgets/placeholder_screen.dart';
 import '../../features/auth/domain/entities/auth_user.dart';
 import '../../shared/domain/entities/donor_search_criteria.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
