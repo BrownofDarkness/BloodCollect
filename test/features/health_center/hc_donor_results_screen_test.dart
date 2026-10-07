@@ -1,8 +1,9 @@
 import 'package:blood_collect/core/constants/app_enums.dart';
 import 'package:blood_collect/core/router/app_router.dart';
 import 'package:blood_collect/core/theme/app_theme.dart';
+import 'package:blood_collect/features/auth/domain/entities/auth_user.dart';
+import 'package:blood_collect/features/auth/presentation/providers/auth_providers.dart';
 import 'package:blood_collect/features/health_center/presentation/providers/hc_providers.dart';
-import 'package:blood_collect/features/health_center/presentation/screens/hc_donor_contact_screen.dart';
 import 'package:blood_collect/features/health_center/presentation/screens/hc_donor_results_screen.dart';
 import 'package:blood_collect/shared/domain/entities/entities.dart';
 import 'package:blood_collect/shared/domain/repositories/donor_repository.dart';
@@ -56,6 +57,9 @@ class _FakeDonorRepository implements DonorRepository {
     if (fail) throw Exception('not-found');
     return result;
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -101,6 +105,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          authStateProvider.overrideWith(
+            (ref) => Stream.value(const AuthUser(id: 'u1', email: 'a@b.ci')),
+          ),
           donorRepositoryProvider
               .overrideWithValue(_FakeDonorRepository(result, fail: fail)),
         ],

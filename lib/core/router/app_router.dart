@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../features/citizen/presentation/providers/donor_providers.dart';
-import '../../shared/presentation/models/donor_search_candidate.dart';
 import '../config/backend_config.dart';
 import '../constants/app_enums.dart';
 import '../../features/auth/domain/entities/auth_user.dart';
+import '../../shared/domain/entities/donor_contact_selection.dart';
 import '../../shared/domain/entities/donor_search_criteria.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -17,16 +16,17 @@ import '../../features/auth/presentation/screens/role_choice_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_shell.dart';
-import '../../features/citizen/presentation/screens/blood_availability_screen.dart';
-import '../../features/citizen/presentation/screens/blood_center_detail_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_blood_availability_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_blood_center_screen.dart';
 import '../../features/citizen/presentation/screens/citizen_home_screen.dart';
 import '../../features/citizen/presentation/screens/citizen_shell.dart';
-import '../../features/citizen/presentation/screens/donor_results_screen.dart';
-import '../../features/citizen/presentation/screens/donor_search_screen.dart';
-import '../../features/citizen/presentation/screens/match_request_received_screen.dart';
-import '../../features/citizen/presentation/screens/match_request_screen.dart';
-import '../../features/citizen/presentation/screens/donate_screen.dart';
-import '../../features/citizen/presentation/screens/profile_screen.dart' as citizen_profile;
+import '../../features/citizen/presentation/screens/citizen_donor_results_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_donor_search_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_incoming_request_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_donor_contact_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_donate_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_matches_screen.dart';
+import '../../features/citizen/presentation/screens/citizen_profile_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_home_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_stocks_screen.dart';
 import '../../features/blood_center/presentation/screens/bc_lot_form_screen.dart';
@@ -39,6 +39,7 @@ import '../../features/health_center/presentation/screens/hc_blood_center_screen
 import '../../features/health_center/presentation/screens/hc_blood_request_screen.dart';
 import '../../features/health_center/presentation/screens/hc_blood_search_screen.dart';
 import '../../features/health_center/presentation/screens/hc_donor_contact_screen.dart';
+import '../../features/health_center/presentation/screens/hc_donor_matches_screen.dart';
 import '../../features/health_center/presentation/screens/hc_donor_results_screen.dart';
 import '../../features/health_center/presentation/screens/hc_donor_search_screen.dart';
 import '../../features/health_center/presentation/screens/hc_home_screen.dart';
@@ -104,6 +105,7 @@ abstract final class AppRoutes {
   static const citizenIncomingRequest = ':requestId';
   static const citizenDonate = '/citizen/donate';
   static const citizenProfile = '/citizen/profile';
+  static const citizenMatches = '/citizen/profile/matches';
 
   static const hcHome = '/hc/home';
   static const hcDonors = '/hc/donors';
@@ -132,12 +134,25 @@ abstract final class AppRoutes {
         }),
       ).toString();
 
+  static const hcDonorMatches = '/hc/profile/matches';
+
   static const hcDonorResults = '/hc/donors/results';
   // Sélection transmise en `extra` (donneurs anonymisés, hors URL).
   static const hcDonorContact = '/hc/donors/contact';
 
-  static String hcDonorResultsPath(DonorSearchCriteria criteria) => Uri(
-        path: hcDonorResults,
+  static String hcDonorResultsPath(DonorSearchCriteria criteria) =>
+      _donorResultsPath(hcDonorResults, criteria);
+
+  static const citizenDonorResults = '/citizen/donors/results';
+  // Donneur choisi transmis en `extra` (profil anonymisé, hors URL).
+  static const citizenDonorContact = '/citizen/donors/request';
+
+  static String citizenDonorResultsPath(DonorSearchCriteria criteria) =>
+      _donorResultsPath(citizenDonorResults, criteria);
+
+  static String _donorResultsPath(String path, DonorSearchCriteria criteria) =>
+      Uri(
+        path: path,
         queryParameters: {
           'bloodType': criteria.bloodType.firestoreValue,
           'city': criteria.city,
@@ -147,7 +162,7 @@ abstract final class AppRoutes {
         },
       ).toString();
 
-  /// Lecture inverse de [hcDonorResultsPath] ; null si l'URL est incomplète.
+  /// Lecture inverse des chemins de résultats ; null si l'URL est incomplète.
   static DonorSearchCriteria? donorCriteriaFrom(Uri uri) {
     final params = uri.queryParameters;
     final bloodType = BloodType.fromString(params['bloodType']);
@@ -322,18 +337,22 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.citizenDonors,
-                builder: (context, state) => const DonorSearchScreen(),
+                builder: (context, state) => const CitizenDonorSearchScreen(),
                 routes: [
+                  // → AppRoutes.citizenDonorResults
                   GoRoute(
                     path: AppRoutes.citizenDonorsResults,
-                    builder: (context, state) => DonorResultsScreen(
-                      filters: state.extra! as DonorSearchFilters,
+                    builder: (context, state) => CitizenDonorResultsScreen(
+                      criteria: AppRoutes.donorCriteriaFrom(state.uri),
                     ),
                   ),
+                  // → AppRoutes.citizenDonorContact
                   GoRoute(
                     path: AppRoutes.citizenDonorsRequest,
-                    builder: (context, state) => MatchRequestScreen(
-                      candidate: state.extra! as DonorSearchCandidate,
+                    builder: (context, state) => CitizenDonorContactScreen(
+                      selection: state.extra is DonorContactSelection
+                          ? state.extra! as DonorContactSelection
+                          : null,
                     ),
                   ),
                 ],
@@ -344,11 +363,12 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.citizenBlood,
-                builder: (context, state) => const BloodAvailabilityScreen(),
+                builder: (context, state) =>
+                    const CitizenBloodAvailabilityScreen(),
                 routes: [
                   GoRoute(
                     path: AppRoutes.citizenBloodCenter,
-                    builder: (context, state) => BloodCenterDetailScreen(
+                    builder: (context, state) => CitizenBloodCenterScreen(
                       centerId: state.pathParameters['centerId'] ?? '',
                     ),
                   ),
@@ -360,7 +380,7 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.citizenDonate,
-                builder: (context, state) => const DonateScreen(),
+                builder: (context, state) => const CitizenDonateScreen(),
               ),
             ],
           ),
@@ -368,7 +388,14 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.citizenProfile,
-                builder: (context, state) => const citizen_profile.ProfileScreen(),
+                builder: (context, state) => const CitizenProfileScreen(),
+                routes: [
+                  // → AppRoutes.citizenMatches
+                  GoRoute(
+                    path: 'matches',
+                    builder: (context, state) => const CitizenMatchesScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -377,7 +404,7 @@ GoRouter appRouter(Ref ref) {
       
       GoRoute(
         path: '${AppRoutes.citizenIncoming}/${AppRoutes.citizenIncomingRequest}',
-        builder: (context, state) => MatchRequestReceivedScreen(
+        builder: (context, state) => CitizenIncomingRequestScreen(
           requestId: state.pathParameters['requestId'] ?? '',
         ),
       ),
@@ -455,6 +482,13 @@ GoRouter appRouter(Ref ref) {
             GoRoute(
               path: AppRoutes.hcProfile,
               builder: (context, state) => const HcProfileScreen(),
+              routes: [
+                // → AppRoutes.hcDonorMatches
+                GoRoute(
+                  path: 'matches',
+                  builder: (context, state) => const HcDonorMatchesScreen(),
+                ),
+              ],
             ),
           ]),
         ],

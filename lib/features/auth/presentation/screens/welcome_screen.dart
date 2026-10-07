@@ -101,7 +101,14 @@ class WelcomeScreen extends StatelessWidget {
                 color: AppColors.ivoire,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+              // La zone ivoire descend sous la barre de navigation du téléphone :
+              // sa hauteur s'ajoute à la marge pour que le bouton reste dégagé.
+              padding: EdgeInsets.fromLTRB(
+                24,
+                24,
+                24,
+                32 + MediaQuery.viewPaddingOf(context).bottom,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

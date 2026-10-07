@@ -175,8 +175,10 @@ void main() {
     expect(find.text('Orientée'), findsOneWidget);
     expect(find.text('Orientée vers le Centre de transfusion B'), findsOneWidget);
 
-    // Frise de la 1re carte uniquement (pastille + étape courante).
+    // Frise de la 1re carte uniquement (pastille + étape courante). Ses
+    // étapes intermédiaires sont affichées car réellement enregistrées.
     expect(find.text('En cours de traitement'), findsNWidgets(2));
+    expect(find.text('Reçue par le centre'), findsOneWidget);
     expect(find.text('Transmise'), findsOneWidget);
     expect(find.text('Décision du centre'), findsOneWidget);
     expect(find.text('3 poches · DOS-2200'), findsNothing);
@@ -188,10 +190,31 @@ void main() {
     await tester.tap(find.text('2 poches · DOS-2285'));
     await tester.pumpAndSettle();
 
-    // Seule la demande en attente est dépliée : pas d'étape courante.
+    // Seule la demande en attente est dépliée : frise à deux étapes, sans
+    // étape intermédiaire non constatée (il ne reste que la pastille de la
+    // 1re carte).
     expect(find.text('Transmise'), findsOneWidget);
-    expect(find.text('En cours de traitement'), findsNWidgets(2));
+    expect(find.text('Décision du centre'), findsOneWidget);
+    expect(find.text('Reçue par le centre'), findsNothing);
+    expect(find.text('En cours de traitement'), findsOneWidget);
     expect(find.textContaining('Depuis'), findsNothing);
+  });
+
+  testWidgets('n’invente pas d’étapes intermédiaires après une décision',
+      (tester) async {
+    await pumpScreen(tester, sample);
+
+    // 1re carte de « Traitées » : décision rendue sans réception enregistrée.
+    await tester.tap(find.text('Traitées'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Transmise'), findsOneWidget);
+    expect(
+      find.text('Décision : partiellement approuvée'),
+      findsOneWidget,
+    );
+    expect(find.text('Reçue par le centre'), findsNothing);
+    expect(find.text('En cours de traitement'), findsNothing);
   });
 
   testWidgets('range les décisions et les demandes closes par onglet',
@@ -228,7 +251,6 @@ void main() {
       _request('1', status: RequestStatus.routing).progress,
       RequestProgress.processing,
     );
-    expect(_request('1', status: RequestStatus.routing).isReceived, isTrue);
     expect(
       _request('1', status: RequestStatus.fulfilled).progress,
       RequestProgress.approved,

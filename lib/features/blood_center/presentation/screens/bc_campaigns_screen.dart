@@ -30,6 +30,10 @@ class _BcCampaignsScreenState extends ConsumerState<BcCampaignsScreen> {
     final Object? error =
         campaignsAsync.hasError ? campaignsAsync.error : null;
     final campaigns = campaignsAsync.asData?.value ?? const [];
+    // Inscrits par collecte : 0 tant que le décompte n'est pas chargé.
+    final registeredCounts =
+        ref.watch(bcCampaignRegisteredCountsProvider).asData?.value ??
+            const <String, int>{};
     final now = DateTime.now();
     final upcoming = upcomingCampaigns(campaigns, now);
     final active = activeCampaigns(campaigns);
@@ -199,7 +203,11 @@ class _BcCampaignsScreenState extends ConsumerState<BcCampaignsScreen> {
                               '/bc/campaigns/${campaign.id}',
                             ),
                           )
-                        : _CampaignCard(campaign: campaign),
+                        : _CampaignCard(
+                            campaign: campaign,
+                            registeredCount:
+                                registeredCounts[campaign.id] ?? 0,
+                          ),
                   ),
             ],
           ),
@@ -248,15 +256,21 @@ class _Tab extends StatelessWidget {
 }
 
 class _CampaignCard extends StatelessWidget {
-  const _CampaignCard({required this.campaign});
+  const _CampaignCard({
+    required this.campaign,
+    required this.registeredCount,
+  });
 
   final Campaign campaign;
+
+  /// Donneurs inscrits à la collecte (inscriptions actives).
+  final int registeredCount;
 
   @override
   Widget build(BuildContext context) {
     final progress = campaign.targetUnits <= 0
         ? 0.0
-        : (campaign.collectedUnits / campaign.targetUnits).clamp(0.0, 1.0);
+        : (registeredCount / campaign.targetUnits).clamp(0.0, 1.0);
     final allGroups =
         campaign.targetBloodTypes.length >= BloodType.values.length;
     return Container(
@@ -383,7 +397,7 @@ class _CampaignCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '${campaign.collectedUnits} / ${campaign.targetUnits}',
+                '$registeredCount / ${campaign.targetUnits}',
                 style: const TextStyle(
                   color: AppColors.encre,
                   fontSize: 14,

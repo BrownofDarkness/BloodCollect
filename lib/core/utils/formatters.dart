@@ -35,6 +35,46 @@ abstract final class Formatters {
     return 'il y a ${minutes ~/ 60} h';
   }
 
+  static const _weekdays = [
+    'Lundi',
+    'Mardi',
+    'Mercredi',
+    'Jeudi',
+    'Vendredi',
+    'Samedi',
+    'Dimanche',
+  ];
+
+  static const _months = [
+    'janvier',
+    'février',
+    'mars',
+    'avril',
+    'mai',
+    'juin',
+    'juillet',
+    'août',
+    'septembre',
+    'octobre',
+    'novembre',
+    'décembre',
+  ];
+
+  /// « Samedi 17 octobre ».
+  static String longDay(DateTime date) =>
+      '${_weekdays[date.weekday - 1]} ${date.day} ${_months[date.month - 1]}';
+
+  /// « 8h00 ».
+  static String hour(DateTime date) => '${date.hour}h${_two(date.minute)}';
+
+  /// Créneau d'un événement : « Samedi 17 octobre · 8h00 – 14h00 », ou
+  /// « Samedi 17 octobre 8h00 → Dimanche 18 octobre 14h00 » sur deux jours.
+  static String schedule(DateTime start, DateTime end) =>
+      _dayOf(start) == _dayOf(end)
+          ? '${longDay(start)} · ${hour(start)} – ${hour(end)}'
+          : '${longDay(start)} ${hour(start)} → '
+              '${longDay(end)} ${hour(end)}';
+
   static int _daysAgo(DateTime date, DateTime? now) =>
       _dayOf(now ?? DateTime.now()).difference(_dayOf(date)).inDays;
 

@@ -1,6 +1,6 @@
 import '../../../core/constants/app_enums.dart';
 
-// Donneur potentiel renvoyé par une recherche, anonymisé côté serveur :
+// Donneur potentiel renvoyé par une recherche, anonymisé par le dépôt :
 // groupe + commune + distance. Aucune donnée d'identité ni de contact,
 // partagées seulement après acceptation de la mise en relation.
 class DonorCandidate {

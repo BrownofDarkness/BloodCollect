@@ -34,7 +34,12 @@ service cloud.firestore {
       allow update: if (owner(uid) || isAdmin())
         && request.resource.data.role == resource.data.role;
       allow delete: if false;
-      allow list: if false;
+      // MVP sans Cloud Functions : la recherche de donneurs liste les
+      // profils citoyens (la requête doit filtrer role == 'citizen').
+      // ATTENTION : la règle expose le document entier (nom, téléphone,
+      // email) à tout compte connecté. À remplacer par une Cloud Function
+      // ou une collection anonymisée avant toute mise en production.
+      allow list: if signedIn() && resource.data.role == 'citizen';
     }
 
     // ── health_centers / blood_centers : fiche publique, écriture owner,
@@ -84,15 +89,19 @@ service cloud.firestore {
       allow get, list: if signedIn();
       allow create: if signedIn()
         && myCenter('health_centers', request.resource.data.healthCenterId);
+      // Le centre de transfusion ne se prononce qu'une fois : une demande
+      // traitée, annulée ou expirée ne lui est plus modifiable.
       allow update: if
         myCenter('health_centers', resource.data.healthCenterId)
-        || (resource.data.keys().hasAll(['matchedBloodCenterId'])
-          && resource.data.matchedBloodCenterId != null
-          && myCenter('blood_centers', resource.data.matchedBloodCenterId))
-        || (request.resource.data.keys().hasAll(['matchedBloodCenterId'])
-          && request.resource.data.matchedBloodCenterId != null
-          && myCenter('blood_centers',
-               request.resource.data.matchedBloodCenterId));
+        || (resource.data.status in ['pending', 'routing']
+          && ((resource.data.keys().hasAll(['matchedBloodCenterId'])
+              && resource.data.matchedBloodCenterId != null
+              && myCenter('blood_centers',
+                   resource.data.matchedBloodCenterId))
+            || (request.resource.data.keys().hasAll(['matchedBloodCenterId'])
+              && request.resource.data.matchedBloodCenterId != null
+              && myCenter('blood_centers',
+                   request.resource.data.matchedBloodCenterId))));
       allow delete: if false;
     }
 
@@ -127,10 +136,18 @@ service cloud.firestore {
 
     // ── campaign_registrations : rattachée à sa campagne + donneur ──
     match /campaign_registrations/{registrationId} {
+      // Le centre organisateur lit les inscriptions de ses collectes (la
+      // requête doit filtrer sur bloodCenterId) pour compter ses inscrits.
       allow get, list: if signedIn()
-        && (resource.data.donorId == request.auth.uid || isAdmin());
+        && (resource.data.donorId == request.auth.uid
+          || isAdmin()
+          || myCenter('blood_centers', resource.data.bloodCenterId));
+      // bloodCenterId doit être celui de la collecte : un donneur ne peut
+      // pas rattacher son inscription à un autre centre.
       allow create: if signedIn()
-        && request.resource.data.donorId == request.auth.uid;
+        && request.resource.data.donorId == request.auth.uid
+        && get(/databases/$(database)/documents/campaigns/$(request.resource.data.campaignId))
+             .data.bloodCenterId == request.resource.data.bloodCenterId;
       allow update: if resource.data.donorId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['status', 'scheduledTime']);

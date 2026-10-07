@@ -108,32 +108,9 @@ class BcHomeScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const Spacer(),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.ligne),
-                    ),
-                    child: IconButton(
-                      onPressed: () => ScaffoldMessenger.of(context)
-                          .showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Centre de notifications à venir.',
-                          ),
-                        ),
-                      ),
-                      icon: const Badge(
-                        backgroundColor: AppColors.rouge,
-                        smallSize: 10,
-                        child: Icon(
-                          Icons.notifications_outlined,
-                          color: AppColors.encre,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Cloche de notifications : masquée en v1, aucune
+                  // notification n'est encore envoyée (Cloud Functions à
+                  // venir).
                 ],
               ),
               const SizedBox(height: 8),

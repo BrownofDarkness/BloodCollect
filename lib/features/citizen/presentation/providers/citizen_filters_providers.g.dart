@@ -51,7 +51,7 @@ final class BloodAvailabilityFilterNotifierProvider
 }
 
 String _$bloodAvailabilityFilterNotifierHash() =>
-    r'b6d4373d3df50377b7e8fd1452859ed4a4f0456b';
+    r'96dd0dca26423c95e3982f02e68d38f2f689a74a';
 
 /// Filtres de l'onglet « Sang ».
 ///

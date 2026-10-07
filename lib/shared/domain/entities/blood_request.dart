@@ -78,6 +78,11 @@ class BloodRequest {
 
   int get remainingUnits => quantityNeeded - quantityFulfilled;
 
+  /// Le centre de transfusion peut encore se prononcer. Une fois la demande
+  /// traitée, annulée ou expirée, sa décision n'est plus modifiable.
+  bool get isAwaitingDecision =>
+      status == RequestStatus.pending || status == RequestStatus.routing;
+
   RequestProgress get progress => switch (status) {
         RequestStatus.pending => receivedAt == null
             ? RequestProgress.waiting
@@ -93,12 +98,6 @@ class BloodRequest {
             : RequestProgress.refused,
         RequestStatus.expired => RequestProgress.expired,
       };
-
-  /// Le centre de transfusion a pris connaissance de la demande.
-  bool get isReceived =>
-      receivedAt != null ||
-      progress == RequestProgress.processing ||
-      progress.isDecision;
 
   /// Heure de la décision, null tant qu'elle n'est pas rendue.
   DateTime? get decidedAt =>

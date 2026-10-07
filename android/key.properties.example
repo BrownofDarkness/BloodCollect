@@ -1,0 +1,8 @@
+# Modèle : copier ce fichier en « key.properties » (même dossier) et remplacer
+# les valeurs. key.properties et le fichier .jks ne doivent JAMAIS être
+# versionnés ni partagés.
+storePassword=VOTRE_MOT_DE_PASSE
+keyPassword=VOTRE_MOT_DE_PASSE
+keyAlias=bloodcollect
+# Chemin relatif à android/app/
+storeFile=bloodcollect-release.jks

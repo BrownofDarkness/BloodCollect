@@ -6,11 +6,11 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../shared/domain/entities/blood_request.dart';
+import '../../../../shared/presentation/widgets/home_action_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/hc_providers.dart';
 import '../widgets/blood_request_summary_card.dart';
 import '../widgets/hc_role_badge.dart';
-import '../widgets/home_action_card.dart';
 
 // Onglet « Accueil » — Accueil centre de santé.
 // Deux actions (bleu = personnes, rouge = sang) et l'état des demandes
@@ -32,22 +32,10 @@ class HcHomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const HcRoleBadge(),
-                  const Spacer(),
-                  _NotificationsButton(
-                    onPressed: () => ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(
-                        const SnackBar(
-                          content: Text('Notifications bientôt disponibles.'),
-                        ),
-                      ),
-                  ),
-                ],
-              ),
+              // Cloche de notifications : masquée en v1, aucune notification
+              // n'est encore envoyée (Cloud Functions à venir).
+              const HcRoleBadge(),
+              const SizedBox(height: 12),
               Text(
                 hasName ? 'Bonjour $managerName,' : 'Bonjour,',
                 style: const TextStyle(color: AppColors.gris, fontSize: 15),
@@ -75,7 +63,7 @@ class HcHomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               HomeActionCard(
-                filled: true,
+                style: HomeActionStyle.bloodFilled,
                 overline: 'SANG · CENTRES AGRÉÉS',
                 title: 'Trouver du sang disponible',
                 description: 'Consulter les disponibilités et envoyer une '
@@ -83,6 +71,7 @@ class HcHomeScreen extends ConsumerWidget {
                 icon: Icons.water_drop_outlined,
                 onTap: () => context.go(AppRoutes.hcBlood),
               ),
+              const _DonorResponsesCard(),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -120,23 +109,69 @@ class HcHomeScreen extends ConsumerWidget {
   );
 }
 
-class _NotificationsButton extends StatelessWidget {
-  const _NotificationsButton({required this.onPressed});
-
-  final VoidCallback onPressed;
+/// Raccourci vers les mises en relation : réponses des donneurs sollicités.
+/// Masqué tant que le centre n'a sollicité personne.
+class _DonorResponsesCard extends ConsumerWidget {
+  const _DonorResponsesCard();
 
   @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onPressed,
-      tooltip: 'Notifications',
-      icon: const Icon(Icons.notifications_outlined, size: 22),
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.encre,
-        fixedSize: const Size(44, 44),
-        side: const BorderSide(color: AppColors.ligne),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final matches = ref.watch(sentDonorMatchesProvider).value ?? const [];
+    if (matches.isEmpty) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    int count(DonorMatchStatus status) =>
+        matches.where((m) => m.statusAt(now) == status).length;
+    final accepted = count(DonorMatchStatus.accepted);
+    final pending = count(DonorMatchStatus.pending);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Material(
+        color: AppColors.bleuLight,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => context.go(AppRoutes.hcDonorMatches),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.mark_chat_read_outlined,
+                  color: AppColors.bleu,
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Réponses des donneurs',
+                        style: TextStyle(
+                          color: AppColors.bleu,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$accepted acceptée${accepted > 1 ? 's' : ''} · '
+                        '$pending en attente',
+                        style: const TextStyle(
+                          color: AppColors.slate,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: AppColors.bleu),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

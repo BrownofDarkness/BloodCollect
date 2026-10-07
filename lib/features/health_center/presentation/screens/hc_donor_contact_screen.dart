@@ -9,25 +9,14 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_back_button.dart';
-import '../../../../shared/domain/entities/donor_candidate.dart';
+import '../../../../shared/domain/entities/donor_contact_selection.dart';
 import '../../../../shared/domain/entities/donor_match_request.dart';
-import '../../../../shared/domain/entities/donor_search_criteria.dart';
+import '../../../../shared/presentation/widgets/request_form_fields.dart';
+import '../../../../shared/presentation/widgets/share_contact_switch.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/widgets/register_form_fields.dart';
 import '../providers/hc_providers.dart';
-import '../widgets/blood_request_form_fields.dart';
 import '../widgets/hc_role_badge.dart';
-
-/// Donneurs cochés sur l'écran de résultats, transmis à la mise en relation.
-class DonorContactSelection {
-  const DonorContactSelection({
-    required this.criteria,
-    required this.candidates,
-  });
-
-  final DonorSearchCriteria criteria;
-  final List<DonorCandidate> candidates;
-}
 
 // Onglet « Donneurs » — Demande de mise en relation (par un centre de santé).
 // Chaque donneur coché reçoit une donor_match_request (flux recherche
@@ -46,8 +35,6 @@ class HcDonorContactScreen extends ConsumerStatefulWidget {
 }
 
 class _HcDonorContactScreenState extends ConsumerState<HcDonorContactScreen> {
-  // Délai laissé au donneur pour répondre avant expiration.
-  static const _responseWindow = Duration(hours: 24);
   static const _maxMessageLength = 300;
 
   final _formKey = GlobalKey<FormState>();
@@ -89,7 +76,7 @@ class _HcDonorContactScreenState extends ConsumerState<HcDonorContactScreen> {
             message: message.isEmpty ? null : message,
             internalReference: _reference.text.trim().toUpperCase(),
             notifiedAt: now,
-            expiresAt: now.add(_responseWindow),
+            expiresAt: now.add(DonorMatchRequest.responseWindow),
             createdAt: now,
           ),
       ]);
@@ -261,9 +248,11 @@ class _HcDonorContactScreenState extends ConsumerState<HcDonorContactScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _ShareContactSwitch(
+                  ShareContactSwitch(
                     value: _shareContact,
                     onChanged: (v) => setState(() => _shareContact = v),
+                    description: 'Le numéro du centre est transmis seulement '
+                        'si le donneur accepte.',
                   ),
                   const SizedBox(height: 20),
                   ValueListenableBuilder(
@@ -442,55 +431,6 @@ class _Avatar extends StatelessWidget {
           fontSize: 14,
           fontWeight: FontWeight.w800,
         ),
-      ),
-    );
-  }
-}
-
-class _ShareContactSwitch extends StatelessWidget {
-  const _ShareContactSwitch({required this.value, required this.onChanged});
-
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return MergeSemantics(
-      child: Row(
-        children: [
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Partager mes coordonnées après acceptation',
-                  style: TextStyle(
-                    color: AppColors.encre,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Le numéro du centre est transmis seulement si le donneur '
-                  'accepte.',
-                  style: TextStyle(
-                    color: AppColors.gris,
-                    fontSize: 13,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeTrackColor: AppColors.bleu,
-            activeThumbColor: Colors.white,
-          ),
-        ],
       ),
     );
   }
